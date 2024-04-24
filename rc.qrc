@@ -1,0 +1,9 @@
+<RCC>
+    <qresource prefix="/">
+        <file>qml/main.qml</file>
+        <file>qml/VideoFlow.qml</file>
+        <file>qml/FileBrowser.qml</file>
+        <file>qml/PlayerControl.qml</file>
+        <file>../Images/default.png</file>
+    </qresource>
+</RCC>
