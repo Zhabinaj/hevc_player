@@ -28,11 +28,10 @@ RowLayout {
             Layout.preferredWidth: 40
             Layout.preferredHeight: 25
             font.pointSize: 10
-
-            onClicked: {         
+            onClicked: {
                 //Если во время нажатия проигрывается видо, видео ставится на паузу. Просто для удобства
                 if (player_control.playing)
-                    session.pauseButtonClicked()
+                    player_control.playback_button.clicked();
 
                 file_dialog.open()
             }
@@ -53,7 +52,6 @@ RowLayout {
             Layout.preferredWidth: 40
             Layout.preferredHeight: 25
             font.pointSize: 10
-
             onClicked: {
                 popup.open()
             }
@@ -78,9 +76,7 @@ RowLayout {
         nameFilters: [ "Video files (*.hevc)" ]
         folder: shortcuts.home
         selectMultiple: false
-
         onAccepted: {
-
             console.log("file_dialog.onAccepted.fileUrl: " + file_dialog.fileUrls)
 
             // Производим сброс бэка и фронта перед открытием нового видео
