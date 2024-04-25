@@ -1,10 +1,11 @@
-﻿#include "session.h"
+#include "session.h"
 
 #include <QDate>
 #include <QDir>
 #include <QString>
 
 #include <iostream>
+#include <unistd.h>
 
 #define STREAM_TV 0
 
@@ -12,29 +13,29 @@ Session::Session(QObject *parent) : QObject(parent)
 {
     camera = new ImageProvider(this);
 
-    // hevc
-    // START_HEVC_THREAD
-    hevc_thread = new QThread;
-
     f1 = new ffmpeg(STREAM_TV);
-    f1->moveToThread(hevc_thread);
-
-    // delete threads later
-    connect(hevc_thread, SIGNAL(finished()), f1, SLOT(deleteLater()));
-    connect(hevc_thread, SIGNAL(finished()), hevc_thread, SLOT(deleteLater()));
 
     connect(f1, SIGNAL(signalQImageReady(int, QImage)), camera,
             SLOT(slotChangeQImage(int, QImage)));
+
+    playing_status_ = PLAYING_STATUS::PAUSE;
 }
 
 Session::~Session()
 {
-    // Stop thread
-    hevc_thread->quit();
-    hevc_thread->wait();
 }
 
-void Session::reset() { f1->resetVideo(); }
+//Используется при закрытии основного окна GUI и перед открытием нового файла
+void Session::reset()
+{
+    playing_status_ = PLAYING_STATUS::PAUSE;
+
+    // and main thread should not wait the image_updating_thread if it was ran
+    if (player_.joinable())
+        player_.detach();
+
+    f1->resetVideo();
+}
 
 //сократить позже
 int Session::open(QUrl url)
@@ -44,28 +45,35 @@ int Session::open(QUrl url)
     std::cout << "Path: " << file_path << std::endl;
     int ret;
     ret = f1->initialization(
-        file_path);	   // initialization вернет от -1 до -10 в зависимости от типа
-                       // ошибки. Если ошибок не будет вернет 0
+        file_path);								 // initialization вернет от -1 до -10 в зависимости от типа
+                                                 // ошибки. Если ошибок не будет вернет 0
+    emit totalFramesChanged(f1->totalFrames);	 //THIS
     return ret;
 }
 
 void Session::playButtonClicked()
 {
-    playing_status_ = PLAYING_STATUS::PLAY;
-    int flag;
+    player_ = std::thread(&Session::play_thread, this);
+}
 
-    while (playing_status_ == PLAYING_STATUS::PLAY)
+void Session::play_thread()
+{
+    playing_status_ = PLAYING_STATUS::PLAY;
+
+    int flag = 1;
+    while (playing_status_ == PLAYING_STATUS::PLAY && flag == 1)
     {
-        flag = f1->play();	  //1 is ok
-        if (flag == 0)
-            playing_status_ = PLAYING_STATUS::PAUSE;
-        qApp->processEvents();
+        flag = f1->play();	  //play() return 0 if EOF
     }
-    emit pause();
+    if (flag == 0)
+        emit videoWasOver();
 }
 
 void Session::pauseButtonClicked()
 {
-    std::cout << "pauseButtonClicked" << std::endl;
     playing_status_ = PLAYING_STATUS::PAUSE;
+
+    // And we need to wait the thread with image updating
+    if (player_.joinable())
+        player_.join();
 }
