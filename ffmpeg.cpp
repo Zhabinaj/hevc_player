@@ -1,10 +1,9 @@
-﻿#include <QFile>
+#include <QFile>
 #include <iostream>
 #include <unistd.h>
 
-#include "string.h"
-
 #include "ffmpeg.h"
+#include "string.h"
 
 ffmpeg::ffmpeg(int id_str, QObject *parent) : QObject(parent)
 {
@@ -53,7 +52,8 @@ int ffmpeg::initialization(std::string path)
     vCodecCtx			 = nullptr;
     AVCodec *vcodec		 = nullptr;
     img_convert_context	 = nullptr;
-    for (unsigned int i = 0; i < formatContext->nb_streams; i++)
+    std::cout << "nb_streams: " << formatContext->nb_streams << std::endl;
+    for (unsigned int i = 0; i < formatContext->nb_streams; i++)	//formatContext->nb_streams = 1
     {
         if (formatContext->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO)
         {
@@ -155,20 +155,32 @@ int ffmpeg::initialization(std::string path)
     // int frames = 0;
     // ++frames;
     // std::cout << "Frames:" << frames << std::endl;
+    stream_ = formatContext->streams[videoStreamIndex];	   //видеопоток один, поэтому videoStreamIndex = 0, id_stream = 0 (установлено в момент создания ffmpeg)
 
+    if (stream_->nb_frames > 0)
+        totalFrames = stream_->nb_frames - 1;
+    else
+    {
+
+        //тотал фреймс
+        std::cout << "duration:" << formatContext->duration << std::endl;				   //int
+        std::cout << "avg_frame_rate.num:" << stream_->avg_frame_rate.num << std::endl;	   //int
+        std::cout << "avg_frame_rate.den:" << stream_->avg_frame_rate.den << std::endl;	   //int
+        std::cout << "AV_TIME_BASE:" << AV_TIME_BASE << std::endl;						   //int
+
+        totalFrames = static_cast<unsigned long>(formatContext->duration * (stream_->avg_frame_rate.num / stream_->avg_frame_rate.den) / AV_TIME_BASE);
+    }
+    std::cout << "totalFrames: " << totalFrames << std::endl;
     play();
     return 0;
 }
 
 void ffmpeg::resetVideo()
 {
-    //=====Эту часть в reset?
-
     av_packet_unref(&packet);
     av_frame_free(&frame);
     avcodec_free_context(&codecContext);
     avformat_close_input(&formatContext);
-    //============
 }
 
 int ffmpeg::play()
@@ -242,8 +254,6 @@ int ffmpeg::play()
         }
         // Free the packet that was allocated by av_read_frame
         av_free_packet(&packet);
-        // Обработка других событий для этого цикла
-        // qApp->processEvents();
         return 1;
     }
 };
