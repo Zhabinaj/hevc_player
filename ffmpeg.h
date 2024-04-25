@@ -41,7 +41,10 @@ public:
     AVPacket packet;
     AVFrame *frame;
     struct SwsContext *img_convert_context;
-
+    //for slide and navigation
+    AVStream *stream_{};
+    //int64_t
+    unsigned long totalFrames;
     /* для скорости воспроизведения
     int64_t frame_timer;
     int64_t frame_last_delay = 40000;
@@ -56,6 +59,7 @@ public:
 
 signals:
     void signalQImageReady(int, QImage);
+    //void totalFramesChanged(int64_t);
 };
 
 #endif	  // FFMPEG_H
