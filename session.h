@@ -1,4 +1,4 @@
-﻿#ifndef SESSION_H
+#ifndef SESSION_H
 #define SESSION_H
 
 #include "ffmpeg.h"
@@ -9,6 +9,7 @@
 #include <QThread>
 #include <QTimer>
 #include <QUdpSocket>
+#include <thread>
 
 class Session : public QObject
 {
@@ -22,6 +23,7 @@ private:
 
     // Status of video condition: PLAY or PAUSE
     PLAYING_STATUS playing_status_;
+    std::thread player_;	//поток для плеера
 
 public:
     explicit Session(QObject *parent = 0);
@@ -29,12 +31,12 @@ public:
 
     ImageProvider *camera;
 
-    QThread *hevc_thread;
-    QTimer updateWorkParamTimer;
     ffmpeg *f1;	   //переименовать этот ужас
 
+    void play_thread();
 signals:
-    void pause();
+    void videoWasOver();
+    void totalFramesChanged(int64_t total_frames_count);
 
 public slots:
     void reset();				 // break the loop and clear all buffers
