@@ -7,8 +7,8 @@ RowLayout {
     property RoundButton prev_frame_button: prev_frame_button
     property RoundButton next_frame_button: next_frame_button
   //  property Slider frame_slider: frame_slider
-   // property Label total_frames_label: total_frames_label
-  //  property Label current_frame_label: current_frame_label
+    property Label total_frames_label: total_frames_label
+    property Label current_frame_label: current_frame_label
 
     property string play: qsTr("▶")
     property string pause: qsTr("||")
@@ -19,25 +19,15 @@ RowLayout {
 
     Connections {
         target: session
-        onPause:{
-            console.log("player_control.playback_button.onClicked(PAUSE)")
-
-            // change player status of playing (is stopping)
-            player_control.playing = false
-
-            // Видео ставится на паузу, а на кнопке отображается команда "PLAY"
-            player_control.playback_button.text = player_control.play
-
-            // Переключать фреймы можно только когда видео стоит на паузе
-            player_control.next_frame_button.enabled = true
-            player_control.prev_frame_button.enabled = true
+        onVideoWasOver:{
+            player_control.playback_button.clicked();
         }
     }
 
-/*
-    Connections {
-        target: backend
 
+    Connections {
+        target: session
+/*
         onCurrentFrameChanged: {
             // if slider is not holding then change label and slider info
             if (!frame_slider.pressed)
@@ -50,13 +40,13 @@ RowLayout {
                 frame_slider.value = frame_number;
             }
         }
-
+*/
         onTotalFramesChanged: {
             total_frames_label.changeLabelText(total_frames_count);
-            frame_slider.changeToValue(total_frames_count);
+            //frame_slider.changeToValue(total_frames_count);
         }
     }
-*/
+
 
     RoundButton {
         id: prev_frame_button
@@ -99,9 +89,7 @@ RowLayout {
         Layout.preferredWidth: 50
         Layout.preferredHeight: 25
         font.pointSize: 10
-
         onClicked: {
-
             // pressed play button
             if (!player_control.playing)
             {
@@ -123,7 +111,19 @@ RowLayout {
             // pressed pause button
             else
             {
-                 session.pauseButtonClicked()
+                console.log("player_control.playback_button.onClicked(PAUSE)")
+
+                // change player status of playing (is stopping)
+                player_control.playing = false
+
+                // Видео ставится на паузу, а на кнопке отображается команда "PLAY"
+                player_control.playback_button.text = player_control.play
+
+                // Переключать фреймы можно только когда видео стоит на паузе
+                player_control.next_frame_button.enabled = true
+                player_control.prev_frame_button.enabled = true
+
+                session.pauseButtonClicked()
             }
         }
     }
@@ -153,7 +153,7 @@ RowLayout {
         Layout.preferredHeight: 25
         font.pointSize: 10
     }
-/*
+
     ColumnLayout {
         Layout.preferredHeight: 50
         Layout.leftMargin: 5
@@ -162,7 +162,7 @@ RowLayout {
             Layout.rightMargin: 15
             Label {
                 id: current_frame_label
-                text: qsTr(current_frame + zero)
+                text: qsTr(current_frame + zero) //??????
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
                 transformOrigin: Item.Center
@@ -171,13 +171,15 @@ RowLayout {
                 property string current_frame: "Frame "
                 property string zero: "0"
 
+                /////========??????
                 function setDefault() {
                     text = qsTr(current_frame + zero);
                 }
 
-                function changeLabelText(frame) {
-                    text = qsTr(current_frame + frame);
-                }
+               // function changeLabelText(frame) {
+               //     text = qsTr(current_frame + frame);
+               // }
+                /////=======
 
                 Layout.column: 1
                 Layout.row: 1
@@ -192,20 +194,21 @@ RowLayout {
 
             Label {
                 id: total_frames_label
-                text: qsTr(total_frames + zero)
+                text: qsTr("from total " + zero) ////?????
                 verticalAlignment: Text.AlignVCenter
                 color: "#d5cfcf"
 
-                property string total_frames: "from total "
                 property string zero: "0"
 
+                //======== по умолчанию from total 0
                 function setDefault() {
-                    text = qsTr(total_frames + zero);
+                    text = qsTr("from total " + zero);
                 }
 
                 function changeLabelText(frames_count) {
-                    text = qsTr(total_frames + frames_count);
+                    text = qsTr("from total " + frames_count);
                 }
+                //==========
 
                 Layout.column: 3
                 Layout.row: 1
@@ -217,7 +220,7 @@ RowLayout {
                 font.pointSize: 10
             }
         }
-
+/*
         Slider {
             id: frame_slider
             enabled: false
@@ -251,6 +254,6 @@ RowLayout {
             Layout.fillWidth: true
             Layout.alignment: Qt.AlignCenter
             Layout.preferredHeight: 25
-        }
-    }*/
+        }*/
+    }
 }
