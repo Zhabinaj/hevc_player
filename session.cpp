@@ -45,8 +45,8 @@ int Session::open(QUrl url)
     std::cout << "Path: " << file_path << std::endl;
     int ret;
     ret = f1->initialization(
-        file_path);								 // initialization вернет от -1 до -10 в зависимости от типа
-                                                 // ошибки. Если ошибок не будет вернет 0
+        file_path);	   // initialization вернет от -1 до -10 в зависимости от типа
+    // ошибки. Если ошибок не будет вернет 0
     emit totalFramesChanged(f1->totalFrames);	 //THIS
     return ret;
 }
@@ -64,7 +64,14 @@ void Session::play_thread()
     while (playing_status_ == PLAYING_STATUS::PLAY && flag == 1)
     {
         flag = f1->play();	  //play() return 0 if EOF
+        ++(f1->currentFrame);
+
+        emit currentFrameChanged(f1->currentFrame);
+
+        if (nextFrameClicked)
+            break;
     }
+
     if (flag == 0)
         emit videoWasOver();
 }
@@ -76,4 +83,19 @@ void Session::pauseButtonClicked()
     // And we need to wait the thread with image updating
     if (player_.joinable())
         player_.join();
+}
+
+void Session::nextFrameButtonClicked()
+{
+    nextFrameClicked = 1;
+    playButtonClicked();
+    if (player_.joinable())
+        player_.join();
+    nextFrameClicked = 0;
+}
+
+void Session::prevFrameButtonClicked()
+{
+    f1->setFrame(f1->currentFrame - 1);
+    emit currentFrameChanged(f1->currentFrame);
 }
