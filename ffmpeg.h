@@ -40,11 +40,15 @@ public:
     AVFormatContext *formatContext;
     AVPacket packet;
     AVFrame *frame;
+    int videoStreamIndex;
     struct SwsContext *img_convert_context;
     //for slide and navigation
     AVStream *stream_{};
-    //int64_t
-    unsigned long totalFrames;
+    int totalFrames = 0;
+    int targetFrame;
+    int currentFrame  = 1;
+    bool setFrameMode = 0;
+
     /* для скорости воспроизведения
     int64_t frame_timer;
     int64_t frame_last_delay = 40000;
@@ -57,9 +61,11 @@ public:
 
     void resetVideo();	  //сброс всего перед открытием нового файла или после закрытия окна GUI
 
+    void setFrame(int);
+
 signals:
     void signalQImageReady(int, QImage);
-    //void totalFramesChanged(int64_t);
 };
 
 #endif	  // FFMPEG_H
+
