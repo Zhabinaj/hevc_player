@@ -5,8 +5,6 @@
 #include "ffmpeg.h"
 #include "string.h"
 
-#define AVSEEK_FORCE 0x20000
-
 ffmpeg::ffmpeg(int id_str, QObject *parent) : QObject(parent)
 {
     id_stream = id_str;
@@ -26,7 +24,7 @@ int ffmpeg::initialization(std::string path)
     av_register_all();	  // Регистрация всех доступных форматов и кодеков
 
     const char *filename = path.c_str();	//Имя вашего HEVC файла
-    std::cout << "===============Filename: " << filename << " ===============" << std::endl;
+    std::cout << "=============== Filename: " << filename << " ===============" << std::endl;
     //===================================================Обработка ошибок: возврат от -1 до -10
     formatContext = avformat_alloc_context();
     if (!formatContext)
@@ -46,7 +44,7 @@ int ffmpeg::initialization(std::string path)
     vCodecCtx			= nullptr;
     AVCodec *vcodec		= nullptr;
     img_convert_context = nullptr;
-    std::cout << "nb_streams: " << formatContext->nb_streams << std::endl;
+    std::cout << "=============== Number of streams: " << formatContext->nb_streams << " ===============" << std::endl;
     for (unsigned int i = 0; i < formatContext->nb_streams; i++)	//formatContext->nb_streams = 1
     {
         if (formatContext->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO)
@@ -92,10 +90,11 @@ int ffmpeg::initialization(std::string path)
     time_base_video = (double)formatContext->streams[id_stream]->time_base.num /
                       (double)formatContext->streams[id_stream]->time_base.den;
 
-    std::cout << "time_base video codec tbc:" << vCodecCtx->time_base.num << "/"
-              << vCodecCtx->time_base.den << " tbn:"
+    std::cout << "=============== Time base video codec tbc: " << vCodecCtx->time_base.num << "/"
+              << vCodecCtx->time_base.den << " ===============" << std::endl;
+    std::cout << "=============== Time base video codec tbn: "
               << formatContext->streams[id_stream]->time_base.num << "/"
-              << formatContext->streams[id_stream]->time_base.den << std::endl;
+              << formatContext->streams[id_stream]->time_base.den << " ===============" << std::endl;
 
     // Получаем декодер для видео потока
     AVCodec *codec = avcodec_find_decoder(
@@ -128,35 +127,35 @@ int ffmpeg::initialization(std::string path)
 
     stream_ = formatContext->streams[videoStreamIndex];	   //видеопоток один, поэтому videoStreamIndex = 0, id_stream = 0 (установлено в момент создания ffmpeg)
 
-    double fps = stream_->avg_frame_rate.num / stream_->avg_frame_rate.den;
-    std::cout << "===============FPS: " << fps << " ===============" << std::endl;
+    fps_ = stream_->avg_frame_rate.num / stream_->avg_frame_rate.den;
+    std::cout << "=============== FPS: " << fps_ << " ===============" << std::endl;
 
     //=================Прогоняем видос, считаем кол-во фреймов
 
-    int ret_read_frame = 0;
-    while (ret_read_frame >= 0)
+    playing_mode_ = PLAYING_MODE::FRAMECOUNT;
+
+    int end_of_file = 1;
+    while (end_of_file)
     {
-        /* функция делит содержимой файла formatContext на фреймы
-        * и возвроащает по одному через packet за каждый вызов
-        * В packet как-то должна хранится ссылка на следующий фрейм
-        */
-        ret_read_frame = av_read_frame(formatContext, &packet);	   //возвращает <0 если конец файла
-        ++totalFrames;
-        // Free the packet that was allocated by av_read_frame
-        av_free_packet(&packet);
+        end_of_file = play();
+        ++totalFrames_;
     }
-    --totalFrames;	  //из-за последнего входа в цикл, когда файл пуст
+    --totalFrames_;	   //из-за последнего входа в цикл, когда файл пуст
+    playing_mode_ = PLAYING_MODE::GENERIC;
     //===========================================================
 
-    std::cout << "av_read_frame EOF" << ret_read_frame << std::endl;
-    std::cout << "===============Total Frames: " << totalFrames << " ===============" << std::endl;
-    double seconds = totalFrames / fps;
+    // std::cout << "av_read_frame EOF" << ret_read_frame << std::endl;
+    std::cout << "=============== Total Frames: " << totalFrames_ << " ===============" << std::endl;
+    double seconds = totalFrames_ / fps_;
     int minutes	   = seconds / 60;
     seconds		   = seconds - (60 * minutes);
-    int time_ms	   = (totalFrames / fps) * 1000;
-    int duration   = time_ms * 1000;
+    int hours	   = minutes / 60;
+    minutes		   = minutes - (hours * 60);
 
-    std::cout << "===============Time: 00:" << minutes << ":" << seconds << " ===============" << std::endl;
+    time_ms_  = (totalFrames_ / fps_) * 1000;
+    duration_ = time_ms_ * 1000;
+
+    std::cout << "=============== Time: " << ((hours < 10) ? ("0") : ("")) << hours << ":" << ((minutes < 10) ? ("0") : ("")) << minutes << ":" << seconds << " ===============" << std::endl;
 
     avio_seek(formatContext->pb, 0, SEEK_SET);	  //при всех 0 сбрасывается на начало видео
 
@@ -166,6 +165,8 @@ int ffmpeg::initialization(std::string path)
 
 void ffmpeg::resetVideo()
 {
+    totalFrames_ = 0;
+    currentFrame = 0;
     av_packet_unref(&packet);
     av_frame_free(&frame);
     avcodec_free_context(&codecContext);
@@ -174,96 +175,76 @@ void ffmpeg::resetVideo()
 
 int ffmpeg::play()
 {
-
-    // для скорости воспроизведения
-    //frame_timer	= av_gettime(); //возвращает текущее время в мс
-
     /* функция делит содержимой файла formatContext на фреймы
      * и возвроащает по одному через packet за каждый вызов
      * В packet как-то должна хранится ссылка на следующий фрейм
      */
-    auto ret_read_frame = av_read_frame(formatContext, &packet);
+
+    int ret_read_frame = av_read_frame(formatContext, &packet);
 
     //=====Проверка на конец файла
     if (ret_read_frame < 0)
     {
-        std::cout << "av_read_frame EOF" << ret_read_frame << std::endl;
+        std::cout << "=============== End Of File ===============" << std::endl;
         return 0;
     }
     //==============
-
-    //  else
-    // {
-    if (packet.stream_index == id_stream)
+    if (playing_mode_ == PLAYING_MODE::GENERIC)
     {
-        int frame_finished;
+        std::cout << "Start processing frame" << std::endl;
+        if (packet.stream_index == id_stream)
+        {
+            int frame_finished;
 
-        /*
+            /*
             *  vCodecCtx - кодек
             *  frame - фрейм packet после декодирования
             *  frame_finished - флаг, не 0 если фрейм декодирован
             *  packet - пакет с данными (недекодированый фрейм), полученными из
             * av_read_frame
             */
-        avcodec_decode_video2(vCodecCtx, frame, &frame_finished, &packet);
-        if (frame_finished)
-        {
-            // Convert the image from its native format to RGB
-            sws_scale(img_convert_context, frame->data, frame->linesize, 0,
-                      vCodecCtx->height, vFrameRGB->data, vFrameRGB->linesize);
+            avcodec_decode_video2(vCodecCtx, frame, &frame_finished, &packet);
+            if (frame_finished)
+            {
+                // Convert the image from its native format to RGB
+                sws_scale(img_convert_context, frame->data, frame->linesize, 0,
+                          vCodecCtx->height, vFrameRGB->data, vFrameRGB->linesize);
 
-            /* Constructs an image - img
+                /* Constructs an image - img
                 * with the given width vCodecCtx->width
                 * height vCodecCtx->height
                 * and format QImage::Format_RGB888 .
                 * that uses an existing memory buffer, data vFrameRGB->data[0]
                 */
-            timg = QImage((uchar *)vFrameRGB->data[0], vCodecCtx->width,
-                          vCodecCtx->height, QImage::Format_RGB888);
-
-            if (setFrameMode == 0)
-                emit signalQImageReady(id_stream, timg);
-            /*
-                //=============Скорость воспроизведения видео
-                usleep(20000); //текущий поток приостановлен на 20000мкс либо пока не поступит сигнал по которому вызывается функция обработки сигналов или программа завершает свою работу
-
-                frame_pts_ms = frame->pkt_pts * 1e6 * time_base_video;                      //frame_pts_ms = 0
-                delay		 = frame_pts_ms - frame_last_pts;	 // the pts from last time  //delay = 0 //frame_last_pts = 0
-                if (delay <= 0 || delay >= 1e6)
-                    delay = frame_last_delay;	 // if incorrect delay, use previous one    //frame_last_delay = 40000
-                frame_timer += delay;                                                       //frame_timer текущее время в мс, засеченное выше
-                actual_delay = frame_timer - av_gettime();                                  //actual_delay = 0
-                if (actual_delay < 10000)
-                    actual_delay = 10000;
-                usleep(actual_delay); // фриз фрейма на actual_delay, для эмуляции режима с другим фпс
-                // save for next time
-                frame_last_delay = delay;
-                frame_last_pts	 = frame_pts_ms;
-                //======================================
-                */
+                timg = QImage((uchar *)vFrameRGB->data[0], vCodecCtx->width,
+                              vCodecCtx->height, QImage::Format_RGB888);
+                std::cout << "Image Ready" << std::endl;
+                if (setFrameMode == 0)
+                {
+                    emit signalQImageReady(id_stream, timg);
+                }
+            }
         }
     }
-    // Free the packet that was allocated by av_read_frame
-    if (setFrameMode == 0)	  // || (currentFrame+1)!=targetFrame)
-        av_free_packet(&packet);
-    if (setFrameMode == 1 && (currentFrame + 1) != targetFrame)
-        av_free_packet(&packet);
+    av_free_packet(&packet);
     return 1;
-    //}
 };
 
 void ffmpeg::setFrame(int targetFrame)
 {
     setFrameMode = 1;
     std::cout << "Targer frame: " << targetFrame << std::endl;
-    avio_seek(formatContext->pb, 0, SEEK_SET);
-    currentFrame = 0;
-    while (currentFrame != targetFrame)
+    if (targetFrame < currentFrame)
+    {
+        avio_seek(formatContext->pb, 0, SEEK_SET);
+        currentFrame = 0;
+    }
+    while (currentFrame != targetFrame - 1)	   //прогоняем видос до
     {
         play();
         ++currentFrame;
     }
-    emit signalQImageReady(id_stream, timg);
-    av_free_packet(&packet);
     setFrameMode = 0;
+    play();
+    ++currentFrame;
 }
