@@ -33,6 +33,15 @@ public:
 
     double time_base_video;
 
+    enum class PLAYING_MODE
+    {
+        GENERIC,
+        JUMP,
+        FRAMECOUNT
+    };
+
+    PLAYING_MODE playing_mode_ = PLAYING_MODE::GENERIC;	   //по умолчанию обычный режим
+
     //для инициализации
     AVCodecContext *codecContext;	 //для создание контекста кодека
     AVCodecContext *vCodecCtxOrig;
@@ -44,17 +53,18 @@ public:
     struct SwsContext *img_convert_context;
     //for slide and navigation
     AVStream *stream_{};
-    int totalFrames = 0;
-    int targetFrame;
+
+    //metadata
+    int totalFrames_ = 0;
+    double fps_;
+    int time_ms_;	  //сейчас не используется, но потом возможно пригодится
+    int duration_;	  //сейчас не используется, но потом возможно пригодится
+
     int currentFrame  = 1;
     bool setFrameMode = 0;
+    int targetFrame;
+    bool jumpToFrame = 0;	 //0 если обычный режим проигрывания, 1 если режим прыжка
 
-    /* для скорости воспроизведения
-    int64_t frame_timer;
-    int64_t frame_last_delay = 40000;
-    int64_t frame_pts_ms = 0, frame_last_pts = 0;
-    int64_t actual_delay = 0, delay = 0;
-    */
     int initialization(std::string path);	 //открытие, настройка, т.е. вся хурма для подготовки вытаскивания, декодирования и выплевывания фрейма
 
     int play();	   //обработка и выплевывание одного фрейма, возвращает 0, когда видео закончилось
@@ -68,4 +78,3 @@ signals:
 };
 
 #endif	  // FFMPEG_H
-
