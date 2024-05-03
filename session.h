@@ -6,9 +6,7 @@
 
 #include <QDebug>
 #include <QObject>
-#include <QThread>
-#include <QTimer>
-#include <QUdpSocket>
+
 #include <thread>
 
 class Session : public QObject
@@ -25,6 +23,7 @@ private:
     PLAYING_STATUS playing_status_;
     std::thread player_;	//поток для плеера
     bool nextFrameClicked = 0;
+    bool prevFrameClicked = 0;
 
 public:
     explicit Session(QObject *parent = 0);
@@ -46,6 +45,7 @@ public slots:
     void pauseButtonClicked();
     void nextFrameButtonClicked();
     void prevFrameButtonClicked();
+    void changeFrameFromSlider(int targetFrame);
 };
 
 #endif	  // SESSION_H
