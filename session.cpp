@@ -1,6 +1,5 @@
 #include "session.h"
 
-#include <QDate>
 #include <QDir>
 #include <QString>
 
@@ -47,7 +46,7 @@ int Session::open(QUrl url)
     ret = f1->initialization(
         file_path);	   // initialization вернет от -1 до -10 в зависимости от типа
     // ошибки. Если ошибок не будет вернет 0
-    emit totalFramesChanged(f1->totalFrames);	 //THIS
+    emit totalFramesChanged(f1->totalFrames_);	  //THIS
     return ret;
 }
 
@@ -71,7 +70,6 @@ void Session::play_thread()
         if (nextFrameClicked)
             break;
     }
-
     if (flag == 0)
         emit videoWasOver();
 }
@@ -85,6 +83,7 @@ void Session::pauseButtonClicked()
         player_.join();
 }
 
+//======================OK
 void Session::nextFrameButtonClicked()
 {
     nextFrameClicked = 1;
@@ -93,9 +92,16 @@ void Session::nextFrameButtonClicked()
         player_.join();
     nextFrameClicked = 0;
 }
+//=====================
 
 void Session::prevFrameButtonClicked()
 {
     f1->setFrame(f1->currentFrame - 1);
+    emit currentFrameChanged(f1->currentFrame);
+}
+
+void Session::changeFrameFromSlider(int targetFrame)
+{
+    f1->setFrame(targetFrame);
     emit currentFrameChanged(f1->currentFrame);
 }
