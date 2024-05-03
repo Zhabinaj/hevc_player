@@ -83,6 +83,7 @@ RowLayout {
             if (file_browser.current_video != ""){
                 session.reset();
                 video_flow.reset();
+                player_control.reset();
             }
 
             //Получаем адрес ОДНОГО файла
@@ -104,7 +105,7 @@ RowLayout {
                 //player_control.prev_frame_button.enabled = true
 
                 //Frame slider becomes available
-                //player_control.frame_slider.enabled = true;
+                player_control.frame_slider.enabled = true;
             }
             else {
                 // если инициализация не удалась выводим код ошибки
