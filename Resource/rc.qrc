@@ -1,0 +1,13 @@
+<RCC>
+    <qresource prefix="/">
+        <file>qml/main.qml</file>
+        <file>qml/VideoFlow.qml</file>
+        <file>qml/OpenVideo.qml</file>
+        <file>qml/PlayerControl.qml</file>
+        <file>Images/default.png</file>
+        <file>ico/icon.ico</file>
+        <file>ico/icon.png</file>
+        <file>qml/SaveVideo.qml</file>
+        <file>qml/Options.qml</file>
+    </qresource>
+</RCC>
