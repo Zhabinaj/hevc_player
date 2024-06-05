@@ -43,7 +43,7 @@ public:
     //возвращ 0 когда достигнуть конец файла
     bool readFrame();
 
-    bool processingFrame();	   //private?
+    bool processingFrame(QImage &);	   //private?
 
     bool getSei(Data_sei_str *);	//private?
 
@@ -58,11 +58,10 @@ public:
     void resetVideo();
 
     //return 1 when ok, 0 when EOF
-    bool play(bool, Data_sei_str *);
+    bool play(bool, Data_sei_str *, QImage &);
 
 private:
     //for initialization
-    const char *open_file_name_;	//Имя открытого HEVC файла
 
     //для инициализации и декодирования
     AVCodecContext *vCodecCtx;				   //кодек
@@ -98,7 +97,8 @@ public:
     AVFormatContext *formatContext;	   //public
 
     //Additional metadata
-    double fps_;	//may use for save?
+    double fps_;					//may use for save?
+    std::string open_file_name_;	//Имя открытого HEVC файла
 
 signals:
     void signalQImageReady(int, QImage);
