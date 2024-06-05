@@ -58,7 +58,9 @@ void Session::reset()
         thread_player_.detach();
 
     player_->engine_player_->resetVideo();
-    video_output_->engine_player_->resetVideo();
+    
+    if (video_output_ != nullptr)
+        video_output_->engine_player_->resetVideo();
 
     delete player_;
     delete video_output_;
