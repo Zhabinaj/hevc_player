@@ -42,7 +42,7 @@ public:
 
     Player *player_;
 
-    VideoOutput *video_output_;
+    VideoOutput *video_output_ = nullptr;
 
 signals:
     void videoWasOver();
