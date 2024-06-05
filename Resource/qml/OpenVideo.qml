@@ -10,6 +10,8 @@ RowLayout {
     property string current_video: ""
     property int error: 0
     property string message_text: ""
+    //property url def : shortcuts.home
+    property url last_open_folder: ""
 
 
     function init_done(){
@@ -132,6 +134,7 @@ RowLayout {
 
             //Получаем адрес ОДНОГО файла
             open_video.current_video = file_dialog.fileUrl;
+            open_video.last_open_folder = file_dialog.folder;
 
 
              /* раскомментировать для отладки
@@ -144,7 +147,7 @@ RowLayout {
             init_start();
 
             // Передача файла в Backend, пытаемся проинициализировать видео в отдельном потоке
-            session.init_thread(open_video.current_video)
+            session.initThread(open_video.current_video)
 
         }
 

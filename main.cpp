@@ -1,7 +1,6 @@
 #include "session.h"
 
 #include <QApplication>
-//#include <QCalendar>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QQuickWindow>

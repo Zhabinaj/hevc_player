@@ -1,14 +1,19 @@
 #include "player.h"
 
-Player::Player(HevcQImageEngine* obj, QObject* parent) : QObject(parent)
+Player::Player(std::string open_f, QObject* parent) : QObject(parent)
 {
-    engine_player_ = obj;
-    sei_data_	   = new Data_sei_str;
+    open_file_path_ = open_f;
+    //engine_player_		 = obj;
+    sei_data_ = new Data_sei_str;
+
+    engine_player_ = new HevcQImageEngine(0);
+    engine_player_->initialization(open_file_path_);
 }
 
 Player::~Player()
 {
     delete sei_data_;
+    delete engine_player_;
 }
 
 void Player::setFrame(int target_frame_)
@@ -17,7 +22,7 @@ void Player::setFrame(int target_frame_)
     {
         avio_seek(engine_player_->formatContext->pb, 0, SEEK_SET);
         player_current_frame_ = 0;
-        engine_player_->play(show_sei_, sei_data_);
+        engine_player_->play(show_sei_, sei_data_, img_);
     }
     else
     {
@@ -44,10 +49,10 @@ void Player::setFrame(int target_frame_)
         while (player_current_frame_ != target_frame_ - 1)
         {
             engine_player_->readFrame();
-            engine_player_->processingFrame();
+            engine_player_->processingFrame(img_);
             ++player_current_frame_;
         }
-        engine_player_->play(show_sei_, sei_data_);
+        engine_player_->play(show_sei_, sei_data_, img_);
         ++player_current_frame_;
     }
 }

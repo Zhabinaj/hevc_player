@@ -86,6 +86,8 @@ add_executable(hevc_player
   hevc_qimage_engine.h hevc_qimage_engine.cpp
   player.h player.cpp
 
+
+
 )
 
 if (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Linux")

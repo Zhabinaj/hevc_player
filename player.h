@@ -10,7 +10,6 @@
 class Player : public QObject
 {
     Q_OBJECT
-private:
 public:
     HevcQImageEngine* engine_player_;
 
@@ -20,9 +19,13 @@ public:
     // for jumping to frame
     int closest_key_frame;
 
+    std::string open_file_path_;
+
     bool show_sei_ = 0;
 
-    //sei for player
+    /**
+     * sei_data_ struct for storage of Supplemental Enhancement Information (SEI), received from each frame
+     */
     Data_sei_str* sei_data_;
 
     /**
@@ -31,7 +34,7 @@ public:
     QImage img_;
 
 public:
-    explicit Player(HevcQImageEngine* obj, QObject* parent = 0);
+    explicit Player(std::string, QObject* parent = 0);
     ~Player();
 
     void setFrame(int);

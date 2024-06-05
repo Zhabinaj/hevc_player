@@ -2,6 +2,7 @@
 
 #include <QDir>
 #include <QString>
+#include <iostream>
 #include <string>
 #include <unistd.h>
 
@@ -14,21 +15,17 @@ Session::Session(QObject *parent) : QObject(parent)
 {
     camera_ = new ImageProvider(this);
 
-    hevc_engine_ = new HevcQImageEngine(STREAM_TV);
-
-    connect(hevc_engine_, SIGNAL(signalQImageReady(int, QImage)), camera_, SLOT(slotChangeQImage(int, QImage)));
-
     playing_status_ = PLAYING_STATUS::PAUSE;
 }
 
 Session::~Session()
 {
     delete camera_;
-    delete hevc_engine_;
     delete player_;
+    delete video_output_;
 }
 
-void Session::init_thread(QUrl url)
+void Session::initThread(QUrl url)
 {
     // convert file path from QUrl to std::string
     open_file_path_ = url.toLocalFile().toStdString();
@@ -40,11 +37,12 @@ void Session::open()
 {
     // int ret;)
     // ret = change to try-catch))
-    hevc_engine_->initialization(open_file_path_);
+
     // return ret;
 
-    player_ = new Player(hevc_engine_);
-    player_->engine_player_->play(player_->show_sei_, player_->sei_data_);
+    player_ = new Player(open_file_path_);
+    connect(player_->engine_player_, SIGNAL(signalQImageReady(int, QImage)), camera_, SLOT(slotChangeQImage(int, QImage)));
+    player_->engine_player_->play(player_->show_sei_, player_->sei_data_, player_->img_);
 
     emit totalFramesChanged(player_->engine_player_->total_frames_);
     emit initializationCompleted();
@@ -59,25 +57,27 @@ void Session::reset()
     if (thread_player_.joinable())
         thread_player_.detach();
 
-    hevc_engine_->resetVideo();
-    //добавить деструктор для Play и Save?
+    player_->engine_player_->resetVideo();
+    video_output_->engine_player_->resetVideo();
+
     delete player_;
+    delete video_output_;
 }
 
 void Session::playButtonClicked()
 {
     connect(player_, SIGNAL(qImagePlayer(int, QImage)), camera_, SLOT(slotChangeQImage(int, QImage)));
-    thread_player_ = std::thread(&Session::play_thread, this);
+    thread_player_ = std::thread(&Session::playThread, this);
 }
 
-void Session::play_thread()
+void Session::playThread()
 {
     playing_status_ = PLAYING_STATUS::PLAY;
 
     int flag = 1;
     while (playing_status_ == PLAYING_STATUS::PLAY)
     {
-        flag = player_->engine_player_->play(player_->show_sei_, player_->sei_data_);
+        flag = player_->engine_player_->play(player_->show_sei_, player_->sei_data_, player_->img_);
         std::this_thread::sleep_for(std::chrono::microseconds(40000));	  // 25 fps => 1 frame per 40000 microsecond в первый раз не надо
         if (flag == 0)
         {
@@ -137,18 +137,17 @@ void Session::showSei(bool checked)
 {
     player_->show_sei_ = checked;
 }
-/*
-void Session::saveVideo(QUrl url, bool save_SEI)
+
+void Session::saveThread(QUrl url, bool save_SEI)
 {
-
-    //тут создаем объект класса для сохранения
-
-    std::string save_file_path = url.toLocalFile().toStdString();
-
-    video_file_->saveVideo(save_file_path, save_SEI);
-
-    //url адрес сохранения
-
-    //поставить на паузу?
+    std::string save_path = url.toLocalFile().toStdString();
+    video_output_		  = new VideoOutput(save_path, save_SEI);
+    thread_save_		  = std::thread(&Session::saveVideo, this);
+    thread_save_.detach();
 }
-*/
+
+void Session::saveVideo()
+{
+    video_output_->engine_player_->initialization(open_file_path_);
+    video_output_->saveVideo();
+}

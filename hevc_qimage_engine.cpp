@@ -39,8 +39,10 @@ int HevcQImageEngine::initialization(std::string path)
 
     av_register_all();	  // Регистрация всех доступных форматов и кодеков
 
-    open_file_name_ = path.c_str();	   //Имя вашего HEVC файла
-    std::cout << "=============== Filename: " << open_file_name_
+    open_file_name_ = path;	   //Имя вашего HEVC файла
+
+    // open_file_name_ = path.c_str();	   //Имя вашего HEVC файла
+    std::cout << "=============== Filename: " << open_file_name_.c_str()
               << " ===============" << std::endl;
 
     //===================================================Обработка ошибок: возврат
@@ -50,7 +52,7 @@ int HevcQImageEngine::initialization(std::string path)
         return -1;
 
     // Открываем файл
-    if (avformat_open_input(&formatContext, open_file_name_, nullptr, nullptr) != 0)
+    if (avformat_open_input(&formatContext, open_file_name_.c_str(), nullptr, nullptr) != 0)
         return -2;
 
     // Получаем информацию о потоке
@@ -165,7 +167,7 @@ int HevcQImageEngine::initialization(std::string path)
 }
 
 //вернет 1 если создан QImage, 0 если не удалось
-bool HevcQImageEngine::processingFrame()
+bool HevcQImageEngine::processingFrame(QImage &img)
 {
 
     if (packet_.stream_index == id_stream_)
@@ -187,8 +189,8 @@ bool HevcQImageEngine::processingFrame()
             sws_scale(img_convert_context, frame_->data, frame_->linesize, 0,
                       vCodecCtx->height, vFrameRGB_->data, vFrameRGB_->linesize);
 
-            timg_ = QImage((uchar *)vFrameRGB_->data[0], vCodecCtx->width,
-                           vCodecCtx->height, QImage::Format_RGB888);
+            img = QImage((uchar *)vFrameRGB_->data[0], vCodecCtx->width,
+                         vCodecCtx->height, QImage::Format_RGB888);
             av_free_packet(&packet_);
 
             return 1;
@@ -216,10 +218,10 @@ bool HevcQImageEngine::getSei(Data_sei_str *str)
         return 0;
 }
 
-bool HevcQImageEngine::play(bool show_sei, Data_sei_str *str)
+bool HevcQImageEngine::play(bool show_sei, Data_sei_str *str, QImage &img)
 {
     if (readFrame())
-        processingFrame();
+        processingFrame(img);
     else
         return 0;
 
@@ -228,12 +230,12 @@ bool HevcQImageEngine::play(bool show_sei, Data_sei_str *str)
     {
         get_sei_flag = getSei(str);	   //вернет 1 если всё ок
         if (get_sei_flag)
-            drawDataOnFrame(str, &timg_);	 //отправляем в рисовашку, у плеера должен быть свой QImage?
+            drawDataOnFrame(str, &img);	   //отправляем в рисовашку, у плеера должен быть свой QImage?
         else
             std::cout << "Error get sei" << std::endl;
     }
 
-    emit signalQImageReady(id_stream_, timg_);
+    emit signalQImageReady(id_stream_, img);
     return 1;
 }
 
@@ -362,5 +364,4 @@ void HevcQImageEngine::resetVideo()
     avcodec_free_context(&vCodecCtx);
     avformat_close_input(&formatContext);
     av_frame_free(&frame_);
-    timg_ = QImage();
 }

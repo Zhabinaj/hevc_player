@@ -5,6 +5,7 @@
 
 #include "hevc_qimage_engine.h"
 #include "player.h"
+#include "video_output.h"
 
 #include <QDebug>
 #include <QObject>
@@ -26,6 +27,7 @@ private:
     PLAYING_STATUS playing_status_;
     std::thread thread_player_;	   //поток для плеера
     std::thread thread_init_;	   //поток для инициализации
+    std::thread thread_save_;
     bool nextFrameClicked = 0;
     bool prevFrameClicked = 0;
 
@@ -36,12 +38,11 @@ public:
     //class for showing frame in player
     ImageProvider *camera_;
 
-    //common part for player and saver
-    HevcQImageEngine *hevc_engine_;
-
-    std::string open_file_path_;
+    std::string open_file_path_;	//перевести в класс hevc_qimage_engine
 
     Player *player_;
+
+    VideoOutput *video_output_;
 
 signals:
     void videoWasOver();
@@ -51,11 +52,12 @@ signals:
 
 private:
     void open();	//слот для открытия по адресу
+    void saveVideo();
 
 public slots:
-    void init_thread(QUrl url);
+    void initThread(QUrl url);
 
-    void play_thread();
+    void playThread();
     void reset();	 // break the loop and clear all buffers
 
     void showSei(bool checked);
@@ -65,7 +67,7 @@ public slots:
     void nextFrameButtonClicked();
     void prevFrameButtonClicked();
     void changeFrameFromSlider(int target_frame);
-    // void saveVideo(QUrl, bool);
+    void saveThread(QUrl, bool);
 };
 
 #endif	  // SESSION_H

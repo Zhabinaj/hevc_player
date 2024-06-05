@@ -137,16 +137,15 @@ RowLayout{
     FileDialog {
         id: fileDialogResultPath
         title: "Please choose a folder to save result sequence"
-        folder: shortcuts.home
+        folder: open_video.last_open_folder //открывает директорию последнего открытого файла
         selectMultiple: false
         selectFolder: true
         modality: Qt.ApplicationModal
 
         onAccepted:{
-            //раскомментить
-          //  var path = fileDialogResultPath.fileUrl
-           // session.saveVideo(path, save_SEI) //сохранение в отдельный поток?
-           // fileDialogResultPath.close()
+            var path = fileDialogResultPath.fileUrl
+            session.saveThread(path, save_SEI) //сохранение в отдельный поток?
+            fileDialogResultPath.close()
         }
         onRejected: fileDialogResultPath.close();
     }
