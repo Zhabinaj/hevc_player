@@ -275,17 +275,17 @@ void HevcQImageEngine::drawDataOnFrame(Data_sei_str *sei, QImage *dimg)
     {
         st = sei->strob + i;
         if (st->type == 0)
-            paint.setPen(QPen(QBrush(Qt::blue), 2));
+            paint.setPen(QPen(QBrush(Qt::blue), 6));
         else if (st->type == 1)
-            paint.setPen(QPen(QBrush(QColor(55, 0xff, 55)), 2));
+            paint.setPen(QPen(QBrush(Qt::green), 6));	 //paint.setPen(QPen(QBrush(QColor(55, 0xff, 55)), 8));
         else if (st->type == 2)
-            paint.setPen(QPen(QBrush(Qt::yellow), 2));
+            paint.setPen(QPen(QBrush(Qt::yellow), 6));
         else if (st->type == 3)
-            paint.setPen(QPen(QBrush(Qt::cyan), 2));
+            paint.setPen(QPen(QBrush(Qt::cyan), 6));
         else if (st->type == 4)
-            paint.setPen(QPen(QBrush(Qt::darkCyan), 2));
+            paint.setPen(QPen(QBrush(Qt::darkCyan), 6));
         else
-            paint.setPen(QPen(QBrush(Qt::gray), 2));
+            paint.setPen(QPen(QBrush(Qt::gray), 6));
 
         if (dimg->width() == 1920 && dimg->height() == 1080)
         {
@@ -364,14 +364,14 @@ void HevcQImageEngine::drawDataOnFrame(Data_sei_str *sei, QImage *dimg)
 
 void HevcQImageEngine::drawCorners(QPainter *p, int x, int y, int w, int h)
 {
-    int b  = 2;
-    int x1 = x - b - 1;
-    int y1 = y - b - 1;
-    int x2 = x + w + b + 1;
-    int y2 = y + h + b + 1;
+    int b  = 6;
+    int x1 = x - b - 3;
+    int y1 = y - b - 3;
+    int x2 = x + w + b + 3;
+    int y2 = y + h + b + 3;
     int dw = w * 0.15;
     int dh = h * 0.15;
-    p->setPen(QPen(QBrush(Qt::red), 2));
+    p->setPen(QPen(QBrush(Qt::red), 6));
     p->drawLine(x1, y1, x1, y1 + dh);
     p->drawLine(x1, y1, x1 + dw, y1);
     p->drawLine(x2, y1, x2, y1 + dh);
