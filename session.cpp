@@ -58,9 +58,11 @@ void Session::reset()
         thread_player_.detach();
 
     player_->engine_player_->resetVideo();
-    
+
     if (video_output_ != nullptr)
+    {
         video_output_->engine_player_->resetVideo();
+    }
 
     delete player_;
     delete video_output_;
@@ -69,6 +71,8 @@ void Session::reset()
 void Session::playButtonClicked()
 {
     connect(player_, SIGNAL(qImagePlayer(int, QImage)), camera_, SLOT(slotChangeQImage(int, QImage)));
+    if (thread_player_.joinable())
+        thread_player_.detach();
     thread_player_ = std::thread(&Session::playThread, this);
 }
 
@@ -150,6 +154,18 @@ void Session::saveThread(QUrl url, bool save_SEI)
 
 void Session::saveVideo()
 {
+    connect(video_output_, SIGNAL(savingProgress(int)), this, SLOT(savingProcess(int)));
     video_output_->engine_player_->initialization(open_file_path_);
+    //savingProcess();
     video_output_->saveVideo();
+}
+
+void Session::savingProcess(int pop)
+{
+    emit savingProcessChanged(pop);
+}
+
+void Session::stopSaving()
+{
+    video_output_->saving = false;
 }

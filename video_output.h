@@ -59,6 +59,7 @@ public:
     SwsContext* SwsCtx_;
     int GotOutput{};
     char errorBuf_[AV_ERROR_MAX_STRING_SIZE] = {};
+    bool saving								 = false;
 
 public:
     explicit VideoOutput(std::string, bool, QObject* parent = 0);
@@ -90,6 +91,8 @@ public:
     void stop_output_stream();
 
     void CloseStream();
+signals:
+    void savingProgress(int progress);
 };
 
 #endif	  // VIDEO_OUTPUT_H

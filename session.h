@@ -49,6 +49,7 @@ signals:
     void totalFramesChanged(int total_frames_count);
     void currentFrameChanged(int current_frame_);
     void initializationCompleted();
+    void savingProcessChanged(int percent);
 
 private:
     void open();	//слот для открытия по адресу
@@ -68,6 +69,8 @@ public slots:
     void prevFrameButtonClicked();
     void changeFrameFromSlider(int target_frame);
     void saveThread(QUrl, bool);
+    void savingProcess(int pop);
+    void stopSaving();
 };
 
 #endif	  // SESSION_H

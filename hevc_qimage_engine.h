@@ -99,6 +99,7 @@ public:
     //Additional metadata
     double fps_;					//may use for save?
     std::string open_file_name_;	//Имя открытого HEVC файла
+    int first_keyframe_ = 0;		//по умолчанию нулевой
 
 signals:
     void signalQImageReady(int, QImage);

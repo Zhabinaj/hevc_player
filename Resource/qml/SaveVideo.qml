@@ -7,11 +7,31 @@ import QtQuick.Dialogs 1.3
 RowLayout{
     property RoundButton save_button: save //save_button - имя, через которое идет доступ
     property bool save_SEI: false
+    property string save_text: ""
+
+   Connections {
+        target: session
+
+        onSavingProcessChanged: {
+            if (percent == -1){
+                save_text =  qsTr("Save completed");
+                save.checked = false;
+            }
+            else
+               save_text =  qsTr(percent + "% saved")
+        }
+    }
+
+    function reset(){
+        save_text = ""
+        save_button.enabled = false;
+    }
 
     RoundButton {
         id: save
         text: "Save"
         enabled: false
+        checkable: true
         palette.button: "#565656"
         palette.shadow: "#2d2d2d"
         palette.buttonText: "#d5cfcf"
@@ -24,12 +44,40 @@ RowLayout{
         Layout.fillHeight: true
         Layout.fillWidth: true
         Layout.alignment: Qt.AlignCenter
+        onCheckedChanged: {
+            if (checked){
+                if (player_control.playing)
+                    player_control.playback_button.clicked();
+                 popup_save.open()
+            }
+            else {
+                console.log("Stop saveing")
+                session.stopSaving();
+            }
+        }
 
-        onClicked:{
-            if (player_control.playing)
-                player_control.playback_button.clicked();
+    }
 
-            popup_save.open()
+    Label {
+        id: save_label
+        text: save_text
+        horizontalAlignment: Text.AlignHCenter
+        verticalAlignment: Text.AlignVCenter
+        transformOrigin: Item.Center
+
+        color: "#d5cfcf"
+
+        Layout.column: 1
+        Layout.row: 1
+        Layout.fillHeight: true
+        Layout.fillWidth: true
+        Layout.alignment: Qt.AlignCenter
+        Layout.preferredWidth: 80
+        Layout.preferredHeight: 25
+        font.pointSize: 10
+
+        function changeSaveText(percent) {
+            text = qsTr(percent + "% saved");
         }
     }
 
@@ -143,6 +191,7 @@ RowLayout{
         modality: Qt.ApplicationModal
 
         onAccepted:{
+            save_text = "Saving video"
             var path = fileDialogResultPath.fileUrl
             session.saveThread(path, save_SEI) //сохранение в отдельный поток?
             fileDialogResultPath.close()

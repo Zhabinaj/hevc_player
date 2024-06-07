@@ -122,10 +122,12 @@ RowLayout {
 
             // Производим сброс бэка и фронта перед открытием нового видео
             if (open_video.current_video != ""){
+
                 session.reset();
+
                 video_flow.reset();
                 player_control.reset();
-                save_video.save_button.enabled = false;
+                save_video.reset();
                 options.show_sei.checked = false;
                 if (options.show_sei.enabled == true)
                     options.show_sei.enabled = false;

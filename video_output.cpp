@@ -1,7 +1,9 @@
 #include "video_output.h"
 
+#include <chrono>
 #include <filesystem>
 #include <iostream>
+#include <thread>
 
 VideoOutput::VideoOutput(std::string save_path, bool save_sei, QObject* parent) : QObject(parent)
 {
@@ -23,22 +25,23 @@ void VideoOutput::saveVideo()
     std::cout << "save path: " << save_file_path_ << std::endl;
     std::cout << "save option: " << save_SEI_ << std::endl;
 
+    saving = true;
     //сбрасываем видос на начало, текущий фрейм 0
+
     avio_seek(engine_player_->formatContext->pb, 0, SEEK_SET);
+
     current_frame_ = -1;
     bool need_init = true;
     // где-то тут начинаем while пока файл не закончился
-    bool not_EOF = true;
-    //while (not_EOF)
 
     std::cout << engine_player_->total_frames_ << std::endl;
 
-    int progress_ten = ((engine_player_->total_frames_) / 100) * 10;
-    int percents	 = 1;
+    int one_percent = ((engine_player_->total_frames_) / 100);
+    int progress;
 
-    for (int i = 0; i < engine_player_->total_frames_; ++i)
+    for (int i = engine_player_->first_keyframe_; i < engine_player_->total_frames_; ++i)
     {
-        //not_EOF =
+
         engine_player_->readFrame();
         engine_player_->processingFrame(img_);	  //получили  QImage
         if (save_SEI_)
@@ -58,17 +61,26 @@ void VideoOutput::saveVideo()
             need_init = false;
             std::cout << "Initialization output stream ended" << std::endl;
         }
-        if (i != 0)
-        {
-            int k = i % progress_ten;
-            if (k == 0)
-                std::cout << percents++ << "0% saved" << std::endl;
-        }
 
         if (output_video_stream_initialized_)
             encode_video_frame_and_put_to_stream();	   //где-то тут ошибка с таймшптамом
+
+        if (i != 0)
+        {
+            progress = i / one_percent;
+            if (progress >= 100)
+                progress = 99;
+            emit savingProgress(progress);
+
+            // std::cout << percents++ << "0% saved" << std::endl;
+        }
+        if (!saving)
+            i = engine_player_->total_frames_;	  // пиздец костыль, переделать
+        std::this_thread::sleep_for(std::chrono::microseconds(10000));
     }
     stop_output_stream();
+    progress = -1;
+    emit savingProgress(progress);
     std::cout << "Save completed" << std::endl;
 }
 void VideoOutput::encode_video_frame_and_put_to_stream()
@@ -303,11 +315,11 @@ std::string VideoOutput::makeOutputURL()
     }
     reverse(video_name.begin(), video_name.end());
 
-    auto temp_name	  = save_file_path_ + std::filesystem::path::preferred_separator + video_name + "_saved_" + ".mp4";
+    auto temp_name	  = save_file_path_ + std::filesystem::path::preferred_separator + video_name + "_saved_" + ".avi";
     int existed_names = 0;
     while (std::filesystem::exists(temp_name))
     {
-        temp_name = save_file_path_ + std::filesystem::path::preferred_separator + video_name + "_saved_" + std::to_string(existed_names) + ".mp4";
+        temp_name = save_file_path_ + std::filesystem::path::preferred_separator + video_name + "_saved_" + std::to_string(existed_names) + ".avi";
         existed_names++;
     };
     return temp_name;

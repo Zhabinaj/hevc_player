@@ -50,14 +50,16 @@ int HevcQImageEngine::initialization(std::string path)
     formatContext = avformat_alloc_context();
     if (!formatContext)
         return -1;
-
+    std::cout << "check 1" << std::endl;
     // Открываем файл
     if (avformat_open_input(&formatContext, open_file_name_.c_str(), nullptr, nullptr) != 0)
         return -2;
+    std::cout << "check 2" << std::endl;
 
     // Получаем информацию о потоке
-    if (avformat_find_stream_info(formatContext, nullptr) < 0)
+    if (avformat_find_stream_info(formatContext, nullptr) < 0)	  //=================HERE
         return -3;
+    std::cout << "check 3" << std::endl;
 
     // Находим видео поток
     vCodecCtx			= nullptr;
@@ -137,16 +139,40 @@ int HevcQImageEngine::initialization(std::string path)
 
     //=================Прогоняем видос, считаем кол-во фреймов
 
-    int end_of_file = 1;
+    int end_of_file	 = 1;
+    bool find_false	 = false;
+    int true_counter = 0;
     while (end_of_file)
     {
         end_of_file = readFrame();
+        if (!find_false)	//??
+        //if (!find_keyframe)
+        {
+            if (packet_.stream_index == id_stream_)
+            {
+                int frame_finished;
+                avcodec_decode_video2(vCodecCtx, frame_, &frame_finished, &packet_);
+                if (frame_->key_frame)
+                {
+                    std::cout << "true" << std::endl;
+                    ++true_counter;	   //find_keyframe = true;
+                }
+                else
+                {
+                    std::cout << "false" << std::endl;
+                    find_false = true;
+                }	 //++first_keyframe_;
+            }
+        }
+        //не работает
         av_free_packet(&packet_);
         ++total_frames_;
     }
     --total_frames_;	//из-за последнего входа в цикл, когда файл пуст
+    first_keyframe_ = true_counter - 1;
     //===========================================================
 
+    std::cout << "First kayframe is " << first_keyframe_ << std::endl;
     std::cout << "=============== Total Frames: " << total_frames_
               << " ===============" << std::endl;
 
@@ -162,7 +188,6 @@ int HevcQImageEngine::initialization(std::string path)
 
     avio_seek(formatContext->pb, 0,
               SEEK_SET);	//при всех 0 сбрасывается на начало видео
-
     return 0;
 }
 
@@ -360,6 +385,7 @@ void HevcQImageEngine::drawCorners(QPainter *p, int x, int y, int w, int h)
 void HevcQImageEngine::resetVideo()
 {
     total_frames_ = 0;
+    av_free_packet(&packet_);
     av_packet_unref(&packet_);
     avcodec_free_context(&vCodecCtx);
     avformat_close_input(&formatContext);
