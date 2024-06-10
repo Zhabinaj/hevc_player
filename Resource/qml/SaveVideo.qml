@@ -8,6 +8,8 @@ RowLayout{
     property RoundButton save_button: save //save_button - имя, через которое идет доступ
     property bool save_SEI: false
     property string save_text: ""
+    property Popup abort_saving : abort_saving
+    property bool saving: false
 
    Connections {
         target: session
@@ -16,6 +18,7 @@ RowLayout{
             if (percent == -1){
                 save_text =  qsTr("Save completed");
                 save.checked = false;
+                saving = false;
             }
             else
                save_text =  qsTr(percent + "% saved")
@@ -51,11 +54,12 @@ RowLayout{
                  popup_save.open()
             }
             else {
-                console.log("Stop saveing")
-                session.stopSaving();
+                if (saving){
+                    console.log("Stop saving")
+                    session.stopSaving();
+                }
             }
         }
-
     }
 
     Label {
@@ -131,6 +135,7 @@ RowLayout{
 
                     onClicked: {
                         save_SEI = true
+                        //saving = true
                         fileDialogResultPath.open()
                         popup_save.close()
                     }
@@ -154,6 +159,7 @@ RowLayout{
 
                     onClicked: {
                         save_SEI = false
+                       // saving = true
                         fileDialogResultPath.open()
                         popup_save.close()
                     }
@@ -175,7 +181,92 @@ RowLayout{
                     Layout.row: 1
                     Layout.column: 2
 
-                    onClicked: { popup_save.close() }
+                    onClicked: {
+                        save.checked = false;
+                        popup_save.close();
+                    }
+                }
+            }
+        }
+        closePolicy: Popup.NoAutoClose
+    }
+
+    Popup {
+        id: abort_saving
+        modal: true
+
+        background: Rectangle {
+            x: (window.width/2)-300
+            y: (window.height/2)-100
+            width: 330
+            height: 150
+            radius: 15
+            color: "black"
+            opacity: 0.95
+
+            GridLayout{
+                anchors.fill: parent
+                rows: 2
+                columns: 2
+                rowSpacing: 15 // пространство между строками
+                columnSpacing: 15 // пространство между столбцами
+                anchors.margins: 15
+
+                Text{
+                    id: abort_saving_popup_text
+                    color: "#68011a" //цвет текста
+
+                    text: "Do you want to complete \nsaving and open a new file?"
+                    font.pixelSize: 20
+
+                    Layout.alignment: Qt.AlignHCenter
+                    Layout.row: 0
+                    Layout.column: 0
+                    Layout.columnSpan: 2
+                }
+
+                RoundButton {
+                    id: abort_saving_yes_button
+                    text: "Yes"
+                    font.pointSize: 10
+                    enabled: true
+                    palette.button: "#565656"
+                    palette.shadow: "#2d2d2d"
+                    palette.buttonText: "#d5cfcf"
+                    radius: button_radius
+
+                    Layout.preferredHeight: 40
+                    Layout.preferredWidth: 90
+                    Layout.alignment: Qt.AlignHCenter
+
+                    Layout.row: 1
+                    Layout.column: 0
+
+                    onClicked: {
+                        save_button.checked = false;
+                        abort_saving.close()
+                        open_video.open_file.clicked();
+                    }
+                }
+
+                RoundButton {
+                    id: abort_saving_no_button
+                    text: "No"
+                    font.pointSize: 10
+                    enabled: true
+                    palette.button: "#565656"
+                    palette.shadow: "#2d2d2d"
+                    palette.buttonText: "#d5cfcf"
+                    radius: button_radius
+
+                    Layout.preferredHeight: 40
+                    Layout.preferredWidth: 90
+                    Layout.alignment: Qt.AlignHCenter
+
+                    Layout.row: 1
+                    Layout.column: 2
+
+                    onClicked: { abort_saving.close() }
                 }
             }
         }
@@ -191,11 +282,16 @@ RowLayout{
         modality: Qt.ApplicationModal
 
         onAccepted:{
+            saving = true
+
             save_text = "Saving video"
             var path = fileDialogResultPath.fileUrl
             session.saveThread(path, save_SEI) //сохранение в отдельный поток?
             fileDialogResultPath.close()
         }
-        onRejected: fileDialogResultPath.close();
+        onRejected: {
+            save.checked = false;
+            fileDialogResultPath.close();
+        }
     }
 }

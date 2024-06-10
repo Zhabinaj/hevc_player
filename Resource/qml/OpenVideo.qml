@@ -7,10 +7,10 @@ import QtQuick.Window 2.3
 RowLayout {
 
     property FileDialog file_dialog: file_dialog
+    property RoundButton open_file: open_file
     property string current_video: ""
     property int error: 0
     property string message_text: ""
-    //property url def : shortcuts.home
     property url last_open_folder: ""
 
 
@@ -75,7 +75,8 @@ RowLayout {
             options.show_sei.enabled = true;
             save_video.save_button.enabled = true;
 
-            //show_sei.enabled = true;
+            open_file.enabled = true;
+
         }
     }
 
@@ -93,6 +94,7 @@ RowLayout {
             palette.buttonText: "#d5cfcf"
 
             radius: button_radius
+            enabled: true
             Layout.fillHeight: true
             Layout.fillWidth: true
             Layout.alignment: Qt.AlignCenter
@@ -104,7 +106,11 @@ RowLayout {
                 if (player_control.playing)
                     player_control.playback_button.clicked();
 
-                file_dialog.open()
+                if (save_video.save_button.checked){
+                    save_video.abort_saving.open();
+                }
+                else
+                    file_dialog.open()
             }
         }
     }
@@ -122,9 +128,7 @@ RowLayout {
 
             // Производим сброс бэка и фронта перед открытием нового видео
             if (open_video.current_video != ""){
-
                 session.reset();
-
                 video_flow.reset();
                 player_control.reset();
                 save_video.reset();
@@ -133,6 +137,7 @@ RowLayout {
                     options.show_sei.enabled = false;
 
             }
+            open_file.enabled = false;
 
             //Получаем адрес ОДНОГО файла
             open_video.current_video = file_dialog.fileUrl;
@@ -150,7 +155,6 @@ RowLayout {
 
             // Передача файла в Backend, пытаемся проинициализировать видео в отдельном потоке
             session.initThread(open_video.current_video)
-
         }
 
         onRejected: {
@@ -160,46 +164,3 @@ RowLayout {
         }
     }
 }
-
-/*
-        Button
-        {
-            id: buttonOpenResultPath
-
-            text: qsTr("PATH")
-            autoExclusive: false
-            highlighted: false
-            Layout.preferredWidth: 75
-            Layout.preferredHeight: 40
-            font.pointSize: 8
-
-            onClicked: fileDialogResultPath.open()
-                FileDialog
-                {
-                    id: fileDialogResultPath
-                    title: "Please choose a folder to save result sequence"
-                    folder: shortcuts.home
-                    selectMultiple: false
-                    selectFolder: true
-                    modality: Qt.ApplicationModal
-
-                    onAccepted:
-                    {
-                        var path = fileDialogResultPath.fileUrl
-
-                        //session.ResultPath = path
-                        session.saveVideo(path, save_SEI) //сохранение в отдельный поток?
-
-                        fileDialogResultPath.close()
-
-                    }
-                    onRejected:
-                    {
-                        fileDialogResultPath.close();
-                    }
-                }
-        }
-
-
-
-  */

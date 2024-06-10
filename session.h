@@ -59,8 +59,11 @@ public slots:
     void initThread(QUrl url);
 
     void playThread();
-    void reset();	 // break the loop and clear all buffers
 
+    //Используется при закрытии основного окна GUI и перед открытием нового файла clear all buffers
+    void reset();
+
+    //переводим плеер в режим показа  sei
     void showSei(bool checked);
 
     void playButtonClicked();	 //жмякаем кнопку плэй

@@ -41,7 +41,6 @@ int HevcQImageEngine::initialization(std::string path)
 
     open_file_name_ = path;	   //Имя вашего HEVC файла
 
-    // open_file_name_ = path.c_str();	   //Имя вашего HEVC файла
     std::cout << "=============== Filename: " << open_file_name_.c_str()
               << " ===============" << std::endl;
 
@@ -50,16 +49,14 @@ int HevcQImageEngine::initialization(std::string path)
     formatContext = avformat_alloc_context();
     if (!formatContext)
         return -1;
-    std::cout << "check 1" << std::endl;
+
     // Открываем файл
     if (avformat_open_input(&formatContext, open_file_name_.c_str(), nullptr, nullptr) != 0)
         return -2;
-    std::cout << "check 2" << std::endl;
 
     // Получаем информацию о потоке
-    if (avformat_find_stream_info(formatContext, nullptr) < 0)	  //=================HERE
+    if (avformat_find_stream_info(formatContext, nullptr) < 0)
         return -3;
-    std::cout << "check 3" << std::endl;
 
     // Находим видео поток
     vCodecCtx			= nullptr;
@@ -80,8 +77,8 @@ int HevcQImageEngine::initialization(std::string path)
     if (!vcodec)
         return -5;
 
-    vCodecCtx = avcodec_alloc_context3(vcodec);	   // Создаем контекст кодека
-
+    // Создаем контекст кодека
+    vCodecCtx = avcodec_alloc_context3(vcodec);
     if (!vCodecCtx)
         return -6;
 
@@ -137,7 +134,7 @@ int HevcQImageEngine::initialization(std::string path)
     std::cout << "=============== FPS: " << fps_
               << " ===============" << std::endl;
 
-    //=================Прогоняем видос, считаем кол-во фреймов
+    //=================Прогоняем видео для подсчета общего количества фреймов и определения первого ключевого фрейма
 
     int end_of_file	 = 1;
     bool find_false	 = false;
@@ -146,33 +143,25 @@ int HevcQImageEngine::initialization(std::string path)
     {
         end_of_file = readFrame();
         if (!find_false)	//??
-        //if (!find_keyframe)
         {
             if (packet_.stream_index == id_stream_)
             {
                 int frame_finished;
                 avcodec_decode_video2(vCodecCtx, frame_, &frame_finished, &packet_);
                 if (frame_->key_frame)
-                {
-                    std::cout << "true" << std::endl;
-                    ++true_counter;	   //find_keyframe = true;
-                }
+                    ++true_counter;
                 else
-                {
-                    std::cout << "false" << std::endl;
                     find_false = true;
-                }	 //++first_keyframe_;
             }
         }
-        //не работает
-        av_free_packet(&packet_);
+        av_packet_unref(&packet_);
         ++total_frames_;
     }
     --total_frames_;	//из-за последнего входа в цикл, когда файл пуст
     first_keyframe_ = true_counter - 1;
     //===========================================================
 
-    std::cout << "First kayframe is " << first_keyframe_ << std::endl;
+    std::cout << "=============== First kayframe: " << first_keyframe_ << " ===============" << std::endl;
     std::cout << "=============== Total Frames: " << total_frames_
               << " ===============" << std::endl;
 
@@ -216,7 +205,7 @@ bool HevcQImageEngine::processingFrame(QImage &img)
 
             img = QImage((uchar *)vFrameRGB_->data[0], vCodecCtx->width,
                          vCodecCtx->height, QImage::Format_RGB888);
-            av_free_packet(&packet_);
+            av_packet_unref(&packet_);
 
             return 1;
         }
@@ -277,7 +266,7 @@ void HevcQImageEngine::drawDataOnFrame(Data_sei_str *sei, QImage *dimg)
         if (st->type == 0)
             paint.setPen(QPen(QBrush(Qt::blue), 6));
         else if (st->type == 1)
-            paint.setPen(QPen(QBrush(Qt::green), 6));	 //paint.setPen(QPen(QBrush(QColor(55, 0xff, 55)), 8));
+            paint.setPen(QPen(QBrush(Qt::green), 6));
         else if (st->type == 2)
             paint.setPen(QPen(QBrush(Qt::yellow), 6));
         else if (st->type == 3)
@@ -312,7 +301,7 @@ void HevcQImageEngine::drawDataOnFrame(Data_sei_str *sei, QImage *dimg)
         if (st->track == 1)
             drawCorners(&paint, scale_x * (st->x + dx), scale_y * (st->y + dy),
                         scale_x * (st->width), scale_y * (st->height));
-        QString modeStr, timeStr, latitude, longitude, altitude, distance, yaw_ops,
+        QString timeStr, latitude, longitude, altitude, yaw_ops,
             pitch_ops, yaw_bla, pitch_bla, roll_bla, fov, dist;
 
         timeStr = QString("Таймштамп   : %1 ").arg(sei->sys_time);
@@ -320,7 +309,7 @@ void HevcQImageEngine::drawDataOnFrame(Data_sei_str *sei, QImage *dimg)
             QString("Широта      : ") + QString::number(sei->latitude_bla, 'f', 8);
         longitude = QString("Долгота     : ") +
                     QString::number(sei->longitude_bla, 'f',
-                                    8);	   //   arg(h->longitude*180./M_PI);
+                                    8);
         altitude = QString("Высота      : %1 ").arg(sei->altitude_bla);
         yaw_bla	 = QString("Курс БЛА    : ") + QString::number(sei->yaw_bla, 'f', 2);
         yaw_ops	 = QString("Курс OPS    : ") + QString::number(sei->yaw, 'f', 2);
@@ -385,7 +374,7 @@ void HevcQImageEngine::drawCorners(QPainter *p, int x, int y, int w, int h)
 void HevcQImageEngine::resetVideo()
 {
     total_frames_ = 0;
-    av_free_packet(&packet_);
+    av_packet_unref(&packet_);
     av_packet_unref(&packet_);
     avcodec_free_context(&vCodecCtx);
     avformat_close_input(&formatContext);

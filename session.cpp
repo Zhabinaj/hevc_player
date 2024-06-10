@@ -6,15 +6,11 @@
 #include <string>
 #include <unistd.h>
 
-#include <chrono>
-#include <thread>
-
 #define STREAM_TV 0
 
 Session::Session(QObject *parent) : QObject(parent)
 {
-    camera_ = new ImageProvider(this);
-
+    camera_			= new ImageProvider(this);
     playing_status_ = PLAYING_STATUS::PAUSE;
 }
 
@@ -35,9 +31,8 @@ void Session::initThread(QUrl url)
 
 void Session::open()
 {
-    // int ret;)
-    // ret = change to try-catch))
-
+    // int ret;
+    // ret = change to try-catch
     // return ret;
 
     player_ = new Player(open_file_path_);
@@ -48,21 +43,17 @@ void Session::open()
     emit initializationCompleted();
 }
 
-//Используется при закрытии основного окна GUI и перед открытием нового файла
 void Session::reset()
 {
     playing_status_ = PLAYING_STATUS::PAUSE;
 
-    // and main thread should not wait the image_updating_thread if it was ran
     if (thread_player_.joinable())
         thread_player_.detach();
 
     player_->engine_player_->resetVideo();
 
     if (video_output_ != nullptr)
-    {
         video_output_->engine_player_->resetVideo();
-    }
 
     delete player_;
     delete video_output_;
@@ -84,7 +75,9 @@ void Session::playThread()
     while (playing_status_ == PLAYING_STATUS::PLAY)
     {
         flag = player_->engine_player_->play(player_->show_sei_, player_->sei_data_, player_->img_);
-        std::this_thread::sleep_for(std::chrono::microseconds(40000));	  // 25 fps => 1 frame per 40000 microsecond в первый раз не надо
+
+        // 25 fps => 1 frame per 40000 microsecond
+        std::this_thread::sleep_for(std::chrono::microseconds(40000));
         if (flag == 0)
         {
             emit videoWasOver();
@@ -108,7 +101,6 @@ void Session::pauseButtonClicked()
         thread_player_.join();
 }
 
-//======================OK
 void Session::nextFrameButtonClicked()
 {
     nextFrameClicked = 1;
@@ -116,7 +108,6 @@ void Session::nextFrameButtonClicked()
     pauseButtonClicked();
     nextFrameClicked = 0;
 }
-//=====================
 
 void Session::prevFrameButtonClicked()
 {
@@ -138,7 +129,6 @@ void Session::changeFrameFromSlider(int target_frame)
         playButtonClicked();
 }
 
-//переводим плеер в режим показа  sei
 void Session::showSei(bool checked)
 {
     player_->show_sei_ = checked;
@@ -156,7 +146,6 @@ void Session::saveVideo()
 {
     connect(video_output_, SIGNAL(savingProgress(int)), this, SLOT(savingProcess(int)));
     video_output_->engine_player_->initialization(open_file_path_);
-    //savingProcess();
     video_output_->saveVideo();
 }
 

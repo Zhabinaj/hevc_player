@@ -13,6 +13,9 @@ int main(int argc, char *argv[])
 
     QApplication app(argc, argv);
 
+    app.setOrganizationName("AME");
+    app.setOrganizationDomain("339");
+
     if (QDateTime::currentDateTime().date().dayOfWeek() == Qt::Wednesday)
         app.setWindowIcon(QIcon(":/ico/alt_icon.png"));
     else

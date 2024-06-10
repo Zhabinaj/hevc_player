@@ -1,17 +1,14 @@
 #include "video_output.h"
 
-#include <chrono>
 #include <filesystem>
 #include <iostream>
-#include <thread>
 
 VideoOutput::VideoOutput(std::string save_path, bool save_sei, QObject* parent) : QObject(parent)
 {
     save_file_path_ = save_path;
     save_SEI_		= save_sei;
     sei_data_		= new Data_sei_str;
-
-    engine_player_ = new HevcQImageEngine(0);
+    engine_player_	= new HevcQImageEngine(0);
 }
 
 VideoOutput::~VideoOutput()
@@ -22,19 +19,16 @@ VideoOutput::~VideoOutput()
 
 void VideoOutput::saveVideo()
 {
-    std::cout << "save path: " << save_file_path_ << std::endl;
-    std::cout << "save option: " << save_SEI_ << std::endl;
+    std::cout << "=============== Save path: " << save_file_path_ << " ===============" << std::endl;
+    std::cout << "=============== Save option: " << ((save_SEI_ == 1) ? ("With SEI") : ("Without SEI")) << " ===============" << std::endl;
 
     saving = true;
-    //сбрасываем видос на начало, текущий фрейм 0
 
     avio_seek(engine_player_->formatContext->pb, 0, SEEK_SET);
 
     current_frame_ = -1;
     bool need_init = true;
     // где-то тут начинаем while пока файл не закончился
-
-    std::cout << engine_player_->total_frames_ << std::endl;
 
     int one_percent = ((engine_player_->total_frames_) / 100);
     int progress;
@@ -43,7 +37,7 @@ void VideoOutput::saveVideo()
     {
 
         engine_player_->readFrame();
-        engine_player_->processingFrame(img_);	  //получили  QImage
+        engine_player_->processingFrame(img_);
         if (save_SEI_)
         {
             //сохраняем каждый фрейм с сеи
@@ -54,12 +48,11 @@ void VideoOutput::saveVideo()
         }
         ++current_frame_;
 
+        //инициализация выходного стрима
         if (need_init)
         {
-            std::cout << "Preparing to save" << std::endl;
-            initializeOutputStream();	 //ОДИН ФРЕЙМ
+            initializeOutputStream();
             need_init = false;
-            std::cout << "Initialization output stream ended" << std::endl;
         }
 
         if (output_video_stream_initialized_)
@@ -71,17 +64,14 @@ void VideoOutput::saveVideo()
             if (progress >= 100)
                 progress = 99;
             emit savingProgress(progress);
-
-            // std::cout << percents++ << "0% saved" << std::endl;
         }
         if (!saving)
             i = engine_player_->total_frames_;	  // пиздец костыль, переделать
-        std::this_thread::sleep_for(std::chrono::microseconds(10000));
+                                                  // std::this_thread::sleep_for(std::chrono::microseconds(10000));
     }
     stop_output_stream();
-    progress = -1;
+    progress = -1;	  //отправляем -1 когда сохранение завершено и поток остановлен
     emit savingProgress(progress);
-    std::cout << "Save completed" << std::endl;
 }
 void VideoOutput::encode_video_frame_and_put_to_stream()
 {
@@ -219,8 +209,8 @@ bool VideoOutput::OpenVideo()
 {
     AVDictionary* opt = nullptr;
 
-    if (av_dict_copy(&opt, Opt_, 0) == 0)
-        std::cout << "av_dict_copy OK" << std::endl;
+    if (av_dict_copy(&opt, Opt_, 0) != 0)
+        std::cout << "av_dict_copy Error" << std::endl;
 
     const auto ret = avcodec_open2(video_output_stream_.codecContext, video_codec_, &opt);
     av_dict_free(&opt);
@@ -298,7 +288,6 @@ void VideoOutput::AddStream()
 
     if (out_format_context_->oformat->flags & AVFMT_GLOBALHEADER)
         video_output_stream_.codecContext->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
-    std::cout << "stream added" << std::endl;
 }
 
 std::string VideoOutput::makeOutputURL()
@@ -361,7 +350,6 @@ void VideoOutput::stop_output_stream()
 
 void VideoOutput::CloseStream()
 {
-    //	LOG_INFO << " VideoOutput::CloseStream()";
     avcodec_free_context(&video_output_stream_.codecContext);
     av_frame_free(&video_output_stream_.frame);
     sws_freeContext(SwsCtx_);

@@ -46,6 +46,10 @@ RowLayout {
         current_frame_label.setDefault();
         total_frames_label.setDefault();
         frame_slider.setDefault();
+        prev_frame_button.enabled = false;
+        next_frame_button.enabled = false;
+        playback_button.enabled = false;
+        frame_slider.enabled = false;
     }
 
     RoundButton {
@@ -166,7 +170,7 @@ RowLayout {
         Layout.leftMargin: 5
         RowLayout {
             Layout.leftMargin: 15
-            Layout.rightMargin: 15
+            //Layout.rightMargin: 15
             Label {
                 id: current_frame_label
                 text: qsTr("Frame 0")
@@ -190,7 +194,7 @@ RowLayout {
                 Layout.fillHeight: true
                 Layout.fillWidth: true
                 Layout.alignment: Qt.AlignCenter
-                Layout.preferredWidth: 80
+                Layout.preferredWidth: 60
                 Layout.preferredHeight: 25
                 font.pointSize: 10
             }
@@ -211,12 +215,12 @@ RowLayout {
                 }
                 //==========
 
-                Layout.column: 3
+                Layout.column: 2
                 Layout.row: 1
                 Layout.fillHeight: true
                 Layout.fillWidth: true
                 Layout.alignment: Qt.AlignCenter
-                Layout.preferredWidth: 80
+                Layout.preferredWidth: 60
                 Layout.preferredHeight: 25
                 font.pointSize: 10
             }
