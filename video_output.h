@@ -31,9 +31,6 @@ private:
 public:
     HevcQImageEngine* engine_player_;
 
-    //sei for saver
-    Data_sei_str* sei_data_;
-
     std::string save_file_path_;	//перевести в класс hevc_qimage_engine
     std::string open_file_path_;
     //std::string output_video_url_;

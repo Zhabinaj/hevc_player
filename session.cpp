@@ -37,7 +37,7 @@ void Session::open()
 
     player_ = new Player(open_file_path_);
     connect(player_->engine_player_, SIGNAL(signalQImageReady(int, QImage)), camera_, SLOT(slotChangeQImage(int, QImage)));
-    player_->engine_player_->play(player_->show_sei_, player_->sei_data_, player_->img_);
+    player_->engine_player_->play(player_->show_sei_, player_->img_);
 
     emit totalFramesChanged(player_->engine_player_->total_frames_);
     emit initializationCompleted();
@@ -74,7 +74,7 @@ void Session::playThread()
     int flag = 1;
     while (playing_status_ == PLAYING_STATUS::PLAY)
     {
-        flag = player_->engine_player_->play(player_->show_sei_, player_->sei_data_, player_->img_);
+        flag = player_->engine_player_->play(player_->show_sei_, player_->img_);
 
         // 25 fps => 1 frame per 40000 microsecond
         std::this_thread::sleep_for(std::chrono::microseconds(40000));

@@ -24,11 +24,6 @@ public:
     bool show_sei_ = 0;
 
     /**
-     * sei_data_ struct for storage of Supplemental Enhancement Information (SEI), received from each frame
-     */
-    Data_sei_str* sei_data_;
-
-    /**
      * img_ one image for Image Provider, built from a given vFrameRGB_
      */
     QImage img_;

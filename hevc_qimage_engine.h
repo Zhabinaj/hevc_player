@@ -45,9 +45,9 @@ public:
 
     bool processingFrame(QImage &);	   //private?
 
-    bool getSei(Data_sei_str *);	//private?
+    bool getSei();	  //private?
 
-    void drawDataOnFrame(Data_sei_str *, QImage *);
+    void drawDataOnFrame(QImage *);
     void drawCorners(QPainter *, int, int, int, int);
 
     /**
@@ -58,7 +58,7 @@ public:
     void resetVideo();
 
     //return 1 when ok, 0 when EOF
-    bool play(bool, Data_sei_str *, QImage &);
+    bool play(bool, QImage &);
 
 private:
     //for initialization
@@ -79,9 +79,6 @@ private:
     AVStream *stream_;
 
 public:
-    /**
-     * sei_data_ struct for storage of Supplemental Enhancement Information (SEI), received from each frame
-     */
     AVPacket packet_;
     /**
      * timg_ one image for Image Provider, built from a given vFrameRGB_
@@ -100,6 +97,11 @@ public:
     int fps_;						//may use for save?
     std::string open_file_name_;	//Имя открытого HEVC файла
     int first_keyframe_ = 0;		//по умолчанию нулевой
+
+    /**
+     * sei_data_ struct for storage of Supplemental Enhancement Information (SEI), received from each frame
+     */
+    Data_sei_str *e_sei_data_;
 
 signals:
     void signalQImageReady(int, QImage);

@@ -7,13 +7,11 @@ VideoOutput::VideoOutput(std::string save_path, bool save_sei, QObject* parent) 
 {
     save_file_path_ = save_path;
     save_SEI_		= save_sei;
-    sei_data_		= new Data_sei_str;
     engine_player_	= new HevcQImageEngine(0);
 }
 
 VideoOutput::~VideoOutput()
 {
-    delete sei_data_;
     delete engine_player_;
 }
 
@@ -41,8 +39,8 @@ void VideoOutput::saveVideo()
         if (save_SEI_)
         {
             //сохраняем каждый фрейм с сеи
-            if (engine_player_->getSei(sei_data_))					  //вернет 1 если всё ок
-                engine_player_->drawDataOnFrame(sei_data_, &img_);	  //отправляем в рисовашку
+            if (engine_player_->getSei())				   //вернет 1 если всё ок
+                engine_player_->drawDataOnFrame(&img_);	   //отправляем в рисовашку
             else
                 std::cout << "Error get sei" << std::endl;
         }
