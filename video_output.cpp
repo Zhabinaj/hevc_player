@@ -65,12 +65,13 @@ void VideoOutput::saveVideo()
                 progress = 99;
             emit savingProgress(progress);
         }
+
+        // корректно прерываем сохранения, устанавливая текущий фрейм = последний
         if (!saving)
-            i = engine_player_->total_frames_;	  // пиздец костыль, переделать
-                                                  // std::this_thread::sleep_for(std::chrono::microseconds(10000));
+            i = engine_player_->total_frames_;
     }
     stop_output_stream();
-    progress = -1;	  //отправляем -1 когда сохранение завершено и поток остановлен
+    progress = 100;	   //отправляем -1 когда сохранение завершено и поток остановлен
     emit savingProgress(progress);
 }
 void VideoOutput::encode_video_frame_and_put_to_stream()

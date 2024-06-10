@@ -106,11 +106,18 @@ RowLayout {
                 if (player_control.playing)
                     player_control.playback_button.clicked();
 
+                //Если во время нажатия производится инициализация сохранения выводить попап и закрыть это окно
+                if (!save_video.can_open_abort)
+                    save_video.popup_wait.open();
+
+
+                else{
+                //Если во время нажатия идет сохраение видео выводится попап
                 if (save_video.save_button.checked){
                     save_video.abort_saving.open();
                 }
                 else
-                    file_dialog.open()
+                    file_dialog.open()}
             }
         }
     }

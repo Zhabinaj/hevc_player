@@ -10,12 +10,16 @@ RowLayout{
     property string save_text: ""
     property Popup abort_saving : abort_saving
     property bool saving: false
+    property bool can_open_abort: true
+    property Popup popup_wait:popup_wait
 
    Connections {
         target: session
 
         onSavingProcessChanged: {
-            if (percent == -1){
+        can_open_abort = true;
+        save_button.enabled = true;
+            if (percent == 100){
                 save_text =  qsTr("Save completed");
                 save.checked = false;
                 saving = false;
@@ -28,6 +32,7 @@ RowLayout{
     function reset(){
         save_text = ""
         save_button.enabled = false;
+       // saving_progress = -1;
     }
 
     RoundButton {
@@ -62,6 +67,29 @@ RowLayout{
         }
     }
 
+    Popup {
+        id: popup_wait
+
+        background: Rectangle {
+            x: (window.width/2)-200
+            y: (window.height/2)-50
+
+            width: 400
+            height: 100
+            radius: 15
+            color: "black" //"#240008"//
+            // border.color: "red"
+            opacity: 0.95
+            Text{
+                anchors.centerIn: parent //выравнивание текста по центру
+                color: "#68011a" //"#B8B8B8"// //цвет текста
+                text: "Please wait until the preparation for saving is completed"
+                font.pixelSize: 25
+            }
+        }
+        closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutsideParent
+    }
+
     Label {
         id: save_label
         text: save_text
@@ -79,10 +107,6 @@ RowLayout{
         Layout.preferredWidth: 80
         Layout.preferredHeight: 25
         font.pointSize: 10
-
-        function changeSaveText(percent) {
-            text = qsTr(percent + "% saved");
-        }
     }
 
     Popup {
@@ -283,8 +307,9 @@ RowLayout{
 
         onAccepted:{
             saving = true
-
-            save_text = "Saving video"
+            can_open_abort = false;
+            save_button.enabled = false;
+            save_text = "Preparing to save"
             var path = fileDialogResultPath.fileUrl
             session.saveThread(path, save_SEI) //сохранение в отдельный поток?
             fileDialogResultPath.close()
