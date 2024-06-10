@@ -21,7 +21,6 @@ ApplicationWindow {
     onClosing:{
         console.log("Hevc player is closed")
         session.reset();
-
     }
 
     GridLayout {
@@ -56,7 +55,6 @@ ApplicationWindow {
                 id: player_control
                 Layout.column: 3
                 Layout.row: 0
-                //Layout.columnSpan: 2
             }
         }
 

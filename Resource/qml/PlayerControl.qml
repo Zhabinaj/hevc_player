@@ -27,11 +27,6 @@ RowLayout {
         onCurrentFrameChanged: {
             // if slider is not holding then change label and slider info
             if (!frame_slider.pressed){
-                /* раскомментировать для отладки
-                if (open_video.current_video != "")
-                    console.log(current_frame_ + " frame")
-                */
-
                 // change slider and label of current frame
                 current_frame_label.changeLabelText(current_frame_);
                 frame_slider.value = current_frame_;
@@ -61,12 +56,7 @@ RowLayout {
         palette.shadow: "#2d2d2d"
         palette.buttonText: "#d5cfcf"
 
-        onClicked: {
-             /* раскомментировать для отладки
-            console.log("PlayerControl.prev_frame_button.onClicked()")
-            */
-            session.prevFrameButtonClicked()
-        }
+        onClicked: { session.prevFrameButtonClicked() }
 
         Layout.column: 1
         Layout.row: 0
@@ -99,10 +89,6 @@ RowLayout {
             // pressed play button
             if (!player_control.playing)
             {
-                 /* раскомментировать для отладки
-                console.log("player_control.playback_button.onClicked(PLAY)")
-                */
-
                 // change player status of playing (is playing)
                 player_control.playing = true
 
@@ -119,10 +105,6 @@ RowLayout {
             // pressed pause button
             else
             {
-                 /* раскомментировать для отладки
-                console.log("player_control.playback_button.onClicked(PAUSE)")
-                */
-
                 // change player status of playing (is stopping)
                 player_control.playing = false
 
@@ -148,12 +130,7 @@ RowLayout {
         text: ">"
         enabled: false
 
-        onClicked: {
-             /* раскомментировать для отладки
-            console.log("PlayerControl.next_frame_button.onClicked()")
-            */
-            session.nextFrameButtonClicked();
-        }
+        onClicked: { session.nextFrameButtonClicked(); }
 
         Layout.column: 3
         Layout.row: 0
@@ -234,7 +211,6 @@ RowLayout {
             to: 1.0
             stepSize: 1.0
 
-
             Layout.fillHeight: true
             Layout.fillWidth: true
             Layout.alignment: Qt.AlignCenter
@@ -287,13 +263,10 @@ RowLayout {
                 current_frame_label.changeLabelText(frame_slider.value);
             }
 
-
-
             onPressedChanged: {
                 if (!frame_slider.pressed)
                     session.changeFrameFromSlider(frame_slider.value);
             }
-
         }
     }
 }

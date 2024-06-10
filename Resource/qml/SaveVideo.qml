@@ -8,7 +8,7 @@ RowLayout{
     property RoundButton save_button: save //save_button - имя, через которое идет доступ
     property bool save_SEI: false
     property string save_text: ""
-    property Popup abort_saving : abort_saving
+    property Popup abort_saving: abort_saving
     property bool saving: false
     property bool can_open_abort: true
     property Popup popup_wait:popup_wait
@@ -32,7 +32,6 @@ RowLayout{
     function reset(){
         save_text = ""
         save_button.enabled = false;
-       // saving_progress = -1;
     }
 
     RoundButton {
@@ -77,13 +76,13 @@ RowLayout{
             width: 400
             height: 100
             radius: 15
-            color: "black" //"#240008"//
+            color: "black" //"#240008"
             // border.color: "red"
             opacity: 0.95
             Text{
                 anchors.centerIn: parent //выравнивание текста по центру
-                color: "#68011a" //"#B8B8B8"// //цвет текста
-                text: "Please wait until the preparation for saving is completed"
+                color: "#68011a"         //цвет текста
+                text: "Please wait until the preparation \nfor saving is completed"
                 font.pixelSize: 25
             }
         }
@@ -159,7 +158,6 @@ RowLayout{
 
                     onClicked: {
                         save_SEI = true
-                        //saving = true
                         fileDialogResultPath.open()
                         popup_save.close()
                     }
@@ -183,7 +181,6 @@ RowLayout{
 
                     onClicked: {
                         save_SEI = false
-                       // saving = true
                         fileDialogResultPath.open()
                         popup_save.close()
                     }
@@ -311,7 +308,7 @@ RowLayout{
             save_button.enabled = false;
             save_text = "Preparing to save"
             var path = fileDialogResultPath.fileUrl
-            session.saveThread(path, save_SEI) //сохранение в отдельный поток?
+            session.saveThread(path, save_SEI)
             fileDialogResultPath.close()
         }
         onRejected: {

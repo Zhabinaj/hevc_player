@@ -13,7 +13,6 @@ RowLayout {
     property string message_text: ""
     property url last_open_folder: ""
 
-
     function init_done(){
         message_text = "Initialization done";
         popup_test.open()
@@ -51,7 +50,7 @@ RowLayout {
             opacity: 0.95
             Text{
                 anchors.centerIn: parent //выравнивание текста по центру
-                color: "#68011a" //"#B8B8B8"// //цвет текста
+                color: "#68011a"         //цвет текста
                 text: message_text
                 font.pixelSize: 25
             }          
@@ -76,7 +75,6 @@ RowLayout {
             save_video.save_button.enabled = true;
 
             open_file.enabled = true;
-
         }
     }
 
@@ -102,22 +100,21 @@ RowLayout {
             Layout.preferredHeight: 25
             font.pointSize: 10
             onClicked: {
-                //Если во время нажатия проигрывается видо, видео ставится на паузу. Просто для удобства
+                //Если во время нажатия проигрывается видо, видео ставится на паузу
                 if (player_control.playing)
                     player_control.playback_button.clicked();
 
-                //Если во время нажатия производится инициализация сохранения выводить попап и закрыть это окно
+                //Если во время нажатия производится инициализация сохранения
                 if (!save_video.can_open_abort)
                     save_video.popup_wait.open();
 
-
                 else{
-                //Если во время нажатия идет сохраение видео выводится попап
-                if (save_video.save_button.checked){
-                    save_video.abort_saving.open();
+                //Если во время нажатия идет сохранеие
+                    if (save_video.save_button.checked)
+                        save_video.abort_saving.open();
+                    else
+                        file_dialog.open()
                 }
-                else
-                    file_dialog.open()}
             }
         }
     }
@@ -129,9 +126,6 @@ RowLayout {
         folder: shortcuts.home
         selectMultiple: false
         onAccepted: {
-             /* раскомментировать для отладки
-            console.log("file_dialog.onAccepted.fileUrl: " + file_dialog.fileUrls)
-            */
 
             // Производим сброс бэка и фронта перед открытием нового видео
             if (open_video.current_video != ""){
@@ -139,21 +133,13 @@ RowLayout {
                 video_flow.reset();
                 player_control.reset();
                 save_video.reset();
-                options.show_sei.checked = false;
-                if (options.show_sei.enabled == true)
-                    options.show_sei.enabled = false;
-
+                options.reset();
             }
             open_file.enabled = false;
 
             //Получаем адрес ОДНОГО файла
             open_video.current_video = file_dialog.fileUrl;
             open_video.last_open_folder = file_dialog.folder;
-
-
-             /* раскомментировать для отладки
-            console.log("initialize_video clicked()" + "; ")
-            */
 
             // показать выбранный файл в заголовке окна
             window.title = window.main_window_title + " - " + open_video.current_video
@@ -164,10 +150,6 @@ RowLayout {
             session.initThread(open_video.current_video)
         }
 
-        onRejected: {
-             /* раскомментировать для отладки
-            console.log("file_dialog.onRejected")
-            */
-        }
+        onRejected: {}
     }
 }

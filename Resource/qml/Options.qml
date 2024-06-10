@@ -5,6 +5,12 @@ import QtQuick.Layouts 1.3
 RowLayout{
     property RoundButton show_sei: show_sei
 
+    function reset(){
+        show_sei.checked = false;
+        if (show_sei.enabled == true)
+            show_sei.enabled = false;
+    }
+
     RoundButton {
         id: show_sei
         text: "Show SEI"
@@ -23,7 +29,7 @@ RowLayout{
         font.pointSize: 10
 
         onCheckedChanged: {
-            session.showSei(checked) //checked true когда кнопку наживаем, false когда отжимаем
+            session.showSei(checked) //checked true когда кнопка нажата, false когда отжата
         }
     }
 }
