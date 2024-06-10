@@ -23,11 +23,6 @@ public:
 
     bool show_sei_ = 0;
 
-    /**
-     * img_ one image for Image Provider, built from a given vFrameRGB_
-     */
-    QImage img_;
-
 public:
     explicit Player(std::string, QObject* parent = 0);
     ~Player();

@@ -43,11 +43,11 @@ public:
     //возвращ 0 когда достигнуть конец файла
     bool readFrame();
 
-    bool processingFrame(QImage &);	   //private?
+    bool processingFrame();	   //private?
 
     bool getSei();	  //private?
 
-    void drawDataOnFrame(QImage *);
+    void drawDataOnFrame();
     void drawCorners(QPainter *, int, int, int, int);
 
     /**
@@ -58,7 +58,7 @@ public:
     void resetVideo();
 
     //return 1 when ok, 0 when EOF
-    bool play(bool, QImage &);
+    bool play(bool);
 
 private:
     //for initialization
@@ -81,9 +81,9 @@ private:
 public:
     AVPacket packet_;
     /**
-     * timg_ one image for Image Provider, built from a given vFrameRGB_
+     * q_img_ one image for Image Provider, built from a given vFrameRGB_
      */
-    QImage timg_;
+    QImage q_img_;
 
     int id_stream_;
 
@@ -101,7 +101,7 @@ public:
     /**
      * sei_data_ struct for storage of Supplemental Enhancement Information (SEI), received from each frame
      */
-    Data_sei_str *e_sei_data_;
+    Data_sei_str *sei_data_;
 
 signals:
     void signalQImageReady(int, QImage);

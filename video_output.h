@@ -37,11 +37,6 @@ public:
 
     int current_frame_;
 
-    /**
-     * img_ one image for Image Provider, built from a given vFrameRGB_
-     */
-    QImage img_;
-
     bool save_SEI_;	   // = 0;	   //по умолчанию не сохраняем
 
     //для инициализации выходного стрима

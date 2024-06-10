@@ -35,12 +35,12 @@ void VideoOutput::saveVideo()
     {
 
         engine_player_->readFrame();
-        engine_player_->processingFrame(img_);
+        engine_player_->processingFrame();
         if (save_SEI_)
         {
             //сохраняем каждый фрейм с сеи
-            if (engine_player_->getSei())				   //вернет 1 если всё ок
-                engine_player_->drawDataOnFrame(&img_);	   //отправляем в рисовашку
+            if (engine_player_->getSei())			  //вернет 1 если всё ок
+                engine_player_->drawDataOnFrame();	  //отправляем в рисовашку
             else
                 std::cout << "Error get sei" << std::endl;
         }
@@ -75,7 +75,7 @@ void VideoOutput::saveVideo()
 void VideoOutput::encode_video_frame_and_put_to_stream()
 {
 
-    if (img_.width() != video_output_stream_.codecContext->width || img_.height() != video_output_stream_.codecContext->height ||
+    if (engine_player_->q_img_.width() != video_output_stream_.codecContext->width || engine_player_->q_img_.height() != video_output_stream_.codecContext->height ||
         static_cast<int>(channels_) != video_output_stream_.codecContext->channels)
     {
         std::cout << "VideoOutput::EncodeAndWrite wrong size" << std::endl;
@@ -83,7 +83,7 @@ void VideoOutput::encode_video_frame_and_put_to_stream()
         return;
     }
 
-    const uint8_t* sws_data[1] = {(uint8_t*)img_.constBits()};
+    const uint8_t* sws_data[1] = {(uint8_t*)engine_player_->q_img_.constBits()};
 
     sws_scale(SwsCtx_, sws_data, InLineSize, 0, video_output_stream_.codecContext->height, video_output_stream_.frame->data, video_output_stream_.frame->linesize);
 
@@ -140,9 +140,9 @@ int VideoOutput::FFmpegEncode(AVFrame* frame)
 
 bool VideoOutput::initializeOutputStream()
 {
-    channels_ = static_cast<uint64_t>(img_.format() == QImage::Format_RGB888 ? 3 : img_.format() == QImage::Format_Grayscale8 ? 1 : 0);
-    width_	  = static_cast<uint64_t>(img_.width());
-    height_	  = static_cast<uint64_t>(img_.height());
+    channels_ = static_cast<uint64_t>(engine_player_->q_img_.format() == QImage::Format_RGB888 ? 3 : engine_player_->q_img_.format() == QImage::Format_Grayscale8 ? 1 : 0);
+    width_	  = static_cast<uint64_t>(engine_player_->q_img_.width());
+    height_	  = static_cast<uint64_t>(engine_player_->q_img_.height());
 
     output_video_stream_initialized_ = false;
     total_frames_number_			 = 0;

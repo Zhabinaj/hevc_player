@@ -5,15 +5,15 @@
 
 HevcQImageEngine::HevcQImageEngine(int id_str, QObject *parent) : QObject(parent)
 {
-    e_sei_data_ = new Data_sei_str;
-    id_stream_	= id_str;
-    vbuffer_	= NULL;
-    vFrameRGB_	= 0;
+    sei_data_  = new Data_sei_str;
+    id_stream_ = id_str;
+    vbuffer_   = NULL;
+    vFrameRGB_ = 0;
 }
 
 HevcQImageEngine::~HevcQImageEngine()
 {
-    delete e_sei_data_;
+    delete sei_data_;
     // Free the RGB image
     av_frame_free(&vFrameRGB_);
     av_free(vbuffer_);
@@ -183,7 +183,7 @@ int HevcQImageEngine::initialization(std::string path)
 }
 
 //вернет 1 если создан QImage, 0 если не удалось
-bool HevcQImageEngine::processingFrame(QImage &img)
+bool HevcQImageEngine::processingFrame()
 {
 
     if (packet_.stream_index == id_stream_)
@@ -205,8 +205,8 @@ bool HevcQImageEngine::processingFrame(QImage &img)
             sws_scale(img_convert_context, frame_->data, frame_->linesize, 0,
                       vCodecCtx->height, vFrameRGB_->data, vFrameRGB_->linesize);
 
-            img = QImage((uchar *)vFrameRGB_->data[0], vCodecCtx->width,
-                         vCodecCtx->height, QImage::Format_RGB888);
+            q_img_ = QImage((uchar *)vFrameRGB_->data[0], vCodecCtx->width,
+                            vCodecCtx->height, QImage::Format_RGB888);
             av_packet_unref(&packet_);
 
             return 1;
@@ -224,7 +224,7 @@ bool HevcQImageEngine::getSei()
         AVFrameSideData *sd = frame_->side_data[0];
         if (sd->type == AV_FRAME_DATA_SEI_UNREGISTERED)
         {
-            memcpy(e_sei_data_, sd->data, sizeof(Data_sei_str));
+            memcpy(sei_data_, sd->data, sizeof(Data_sei_str));
             return 1;
         }
         else
@@ -234,10 +234,10 @@ bool HevcQImageEngine::getSei()
         return 0;
 }
 
-bool HevcQImageEngine::play(bool show_sei, QImage &img)
+bool HevcQImageEngine::play(bool show_sei)
 {
     if (readFrame())
-        processingFrame(img);
+        processingFrame();
     else
         return 0;
 
@@ -246,25 +246,25 @@ bool HevcQImageEngine::play(bool show_sei, QImage &img)
     {
         get_sei_flag = getSei();	//вернет 1 если всё ок
         if (get_sei_flag)
-            drawDataOnFrame(&img);	  //отправляем в рисовашку, у плеера должен быть свой QImage?
+            drawDataOnFrame();	  //отправляем в рисовашку, у плеера должен быть свой QImage?
         else
             std::cout << "Error get sei" << std::endl;
     }
 
-    emit signalQImageReady(id_stream_, img);
+    emit signalQImageReady(id_stream_, q_img_);
     return 1;
 }
 
-void HevcQImageEngine::drawDataOnFrame(QImage *dimg)
+void HevcQImageEngine::drawDataOnFrame()
 {
     int dx = 0;
     int dy = 0;
-    QPainter paint(dimg);
+    QPainter paint(&q_img_);
     strob_struct *st;
 
     for (int i = 0; i < 5; i++)
     {
-        st = e_sei_data_->strob + i;
+        st = sei_data_->strob + i;
         if (st->type == 0)
             paint.setPen(QPen(QBrush(Qt::blue), 6));
         else if (st->type == 1)
@@ -278,23 +278,23 @@ void HevcQImageEngine::drawDataOnFrame(QImage *dimg)
         else
             paint.setPen(QPen(QBrush(Qt::gray), 6));
 
-        if (dimg->width() == 1920 && dimg->height() == 1080)
+        if (q_img_.width() == 1920 && q_img_.height() == 1080)
         {
-            dx = (dimg->width() - 1024) / 2 + (47.8112 - 90.3752 / e_sei_data_->camera.fov_h);
-            dy = (dimg->height() - 768) / 2 +
-                 (0.0001882264 * e_sei_data_->camera.fov_h * e_sei_data_->camera.fov_h *
-                      e_sei_data_->camera.fov_h -
-                  0.0256920432 * e_sei_data_->camera.fov_h * e_sei_data_->camera.fov_h +
-                  1.1316176497 * e_sei_data_->camera.fov_h - 2.1749032649);
+            dx = (q_img_.width() - 1024) / 2 + (47.8112 - 90.3752 / sei_data_->camera.fov_h);
+            dy = (q_img_.height() - 768) / 2 +
+                 (0.0001882264 * sei_data_->camera.fov_h * sei_data_->camera.fov_h *
+                      sei_data_->camera.fov_h -
+                  0.0256920432 * sei_data_->camera.fov_h * sei_data_->camera.fov_h +
+                  1.1316176497 * sei_data_->camera.fov_h - 2.1749032649);
         }
 
         float scale_x = 1.0f;
         float scale_y = 1.0f;
 
-        if (dimg->width() == 640 && dimg->height() == 512)
+        if (q_img_.width() == 640 && q_img_.height() == 512)
         {
-            scale_x = (dimg->width() / 1024.0f);
-            scale_y = (dimg->height() / 768.0f);
+            scale_x = (q_img_.width() / 1024.0f);
+            scale_y = (q_img_.height() / 768.0f);
         }
 
         paint.drawRect(scale_x * (st->x + dx), scale_y * (st->y + dy),
@@ -306,23 +306,23 @@ void HevcQImageEngine::drawDataOnFrame(QImage *dimg)
         QString timeStr, latitude, longitude, altitude, yaw_ops,
             pitch_ops, yaw_bla, pitch_bla, roll_bla, fov, dist;
 
-        timeStr = QString("Таймштамп   : %1 ").arg(e_sei_data_->sys_time);
+        timeStr = QString("Таймштамп   : %1 ").arg(sei_data_->sys_time);
         latitude =
-            QString("Широта      : ") + QString::number(e_sei_data_->latitude_bla, 'f', 8);
+            QString("Широта      : ") + QString::number(sei_data_->latitude_bla, 'f', 8);
         longitude = QString("Долгота     : ") +
-                    QString::number(e_sei_data_->longitude_bla, 'f',
+                    QString::number(sei_data_->longitude_bla, 'f',
                                     8);
-        altitude = QString("Высота      : %1 ").arg(e_sei_data_->altitude_bla);
-        yaw_bla	 = QString("Курс БЛА    : ") + QString::number(e_sei_data_->yaw_bla, 'f', 2);
-        yaw_ops	 = QString("Курс OPS    : ") + QString::number(e_sei_data_->yaw, 'f', 2);
+        altitude = QString("Высота      : %1 ").arg(sei_data_->altitude_bla);
+        yaw_bla	 = QString("Курс БЛА    : ") + QString::number(sei_data_->yaw_bla, 'f', 2);
+        yaw_ops	 = QString("Курс OPS    : ") + QString::number(sei_data_->yaw, 'f', 2);
         pitch_bla =
-            QString("Тангаж БЛА  : ") + QString::number(e_sei_data_->pitch_bla, 'f', 2);
-        pitch_ops = QString("Тангаж OPS  : ") + QString::number(e_sei_data_->pitch, 'f', 2);
+            QString("Тангаж БЛА  : ") + QString::number(sei_data_->pitch_bla, 'f', 2);
+        pitch_ops = QString("Тангаж OPS  : ") + QString::number(sei_data_->pitch, 'f', 2);
         roll_bla =
-            QString("Крен БЛА    : ") + QString::number(e_sei_data_->roll_bla, 'f', 2);
+            QString("Крен БЛА    : ") + QString::number(sei_data_->roll_bla, 'f', 2);
         fov =
-            QString("Поле зрения : ") + QString::number(e_sei_data_->camera.fov_h, 'f', 2);
-        dist = QString("Дальность   : %1 ").arg(e_sei_data_->ld_distance);
+            QString("Поле зрения : ") + QString::number(sei_data_->camera.fov_h, 'f', 2);
+        dist = QString("Дальность   : %1 ").arg(sei_data_->ld_distance);
 
         QBrush background;
         background.setColor(Qt::gray);

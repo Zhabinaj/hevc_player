@@ -18,7 +18,7 @@ void Player::setFrame(int target_frame_)
     {
         avio_seek(engine_player_->formatContext->pb, 0, SEEK_SET);
         player_current_frame_ = 0;
-        engine_player_->play(show_sei_, img_);
+        engine_player_->play(show_sei_);
     }
     else
     {
@@ -47,10 +47,10 @@ void Player::setFrame(int target_frame_)
         while (player_current_frame_ != target_frame_ - 1)
         {
             engine_player_->readFrame();
-            engine_player_->processingFrame(img_);
+            engine_player_->processingFrame();
             ++player_current_frame_;
         }
-        engine_player_->play(show_sei_, img_);
+        engine_player_->play(show_sei_);
         ++player_current_frame_;
     }
 }
