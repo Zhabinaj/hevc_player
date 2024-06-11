@@ -88,7 +88,8 @@ void Session::playThread()
         emit currentFrameChanged(player_->player_current_frame_);
 
         if (nextFrameClicked)
-            break;
+            playing_status_ = PLAYING_STATUS::PAUSE;
+        //pauseButtonClicked();
     }
 }
 
@@ -104,8 +105,9 @@ void Session::pauseButtonClicked()
 void Session::nextFrameButtonClicked()
 {
     nextFrameClicked = 1;
-    playButtonClicked();
-    pauseButtonClicked();
+    playThread();
+    //playButtonClicked();
+    //pauseButtonClicked();
     nextFrameClicked = 0;
 }
 

@@ -23,11 +23,6 @@ RowLayout {
         popup_test.open()
     }
 
-    function save_clicked(){
-        message_text = "Function Save as is not available";
-        popup_test.open()
-    }
-
     //======= error - сработавшая ошибка инициализации
     //правильно словить в бэкенде, передать сообщение сюда и правильно отработать
     function init_error(error){

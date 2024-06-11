@@ -31,9 +31,15 @@ RowLayout {
                 current_frame_label.changeLabelText(current_frame_);
                 frame_slider.value = current_frame_;
             }
+		if (current_frame_<=0)
+                prev_frame_button.enabled = false;
+            else
+                prev_frame_button.enabled = true;
         }
         onVideoWasOver:{
-            player_control.playback_button.clicked();
+            if (player_control.playing)
+                player_control.playback_button.clicked();
+		player_control.next_frame_button.enabled = false;
         }
     }
 
@@ -56,7 +62,9 @@ RowLayout {
         palette.shadow: "#2d2d2d"
         palette.buttonText: "#d5cfcf"
 
-        onClicked: { session.prevFrameButtonClicked() }
+        onClicked: { 
+	player_control.next_frame_button.enabled = true;
+	session.prevFrameButtonClicked() }
 
         Layout.column: 1
         Layout.row: 0
@@ -265,7 +273,19 @@ RowLayout {
 
             onPressedChanged: {
                 if (!frame_slider.pressed)
-                    session.changeFrameFromSlider(frame_slider.value);
+                    {   if (frame_slider.value>=frame_slider.to)
+                        player_control.next_frame_button.enabled = false;
+                    else
+                        player_control.next_frame_button.enabled = true;
+                    if (frame_slider.value<=frame_slider.from)
+                        player_control.prev_frame_button.enabled = false;
+                    else
+                        player_control.prev_frame_button.enabled = true;
+
+
+                    console.log("Frame from slider: "+frame_slider.value)
+                    session.changeFrameFromSlider(frame_slider.value)
+                };
             }
         }
     }

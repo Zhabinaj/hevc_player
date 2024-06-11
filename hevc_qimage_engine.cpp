@@ -246,7 +246,7 @@ bool HevcQImageEngine::play(bool show_sei)
     {
         get_sei_flag = getSei();	//вернет 1 если всё ок
         if (get_sei_flag)
-            drawDataOnFrame();	  //отправляем в рисовашку, у плеера должен быть свой QImage?
+            drawDataOnFrame();	  //отправляем в рисовашку
         else
             std::cout << "Error get sei" << std::endl;
     }
