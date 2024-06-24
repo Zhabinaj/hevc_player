@@ -50,8 +50,8 @@
 
 21. Понизить версии либ используемых в QML 
 
-22. разбить на функции drawDataOnFrame, initialization и все что занимает больше 1 экрана
+22.  Разбить на функции все, что занимает больше 1 экрана (HevcQImageEngine::initialization, HevcQImageEngine::drawDataOnFrame, Player::setFrame, VideoOutput::saveVideo, VideoOutput::initializeOutputStream )
 
-23. Заменить где можно на unique_prt и shared_ptr
+24. Заменить где можно на unique_prt и shared_ptr
 
-24. Доксиген
+25. Доксиген
