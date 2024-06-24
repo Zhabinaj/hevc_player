@@ -48,9 +48,11 @@
 
 ----- Замечания от Лёши -----
 
-+ 21. SaveVideo.qml QtQuick.Layouts 1.15 изменен на 1.12  
++ 21. SaveVideo.qml QtQuick.Layouts 1.15 изменен на 1.12
+ 
++  22.  Метод HevcQImageEngine::initialization внутри разбит на вспомогательные методы. 
 
-22.  Разбить на функции все, что занимает больше 1 экрана (HevcQImageEngine::initialization, HevcQImageEngine::drawDataOnFrame, Player::setFrame, VideoOutput::saveVideo, VideoOutput::initializeOutputStream )
+ 22.  Разбить на функции все, что занимает больше 1 экрана ( HevcQImageEngine::drawDataOnFrame, Player::setFrame, VideoOutput::saveVideo, VideoOutput::initializeOutputStream )
 
 24. Заменить где можно на unique_prt и shared_ptr
 
