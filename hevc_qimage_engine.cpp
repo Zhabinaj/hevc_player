@@ -21,33 +21,62 @@ HevcQImageEngine::~HevcQImageEngine()
 
 bool HevcQImageEngine::readFrame()
 {
-    /* функция делит содержимой файла formatContext на фреймы
-   * и возвроащает по одному через packet_ за каждый вызов
-   * В packet_ как-то должна хранится ссылка на следующий фрейм
-   */
+    /* функция делит содержимое файла formatContext на фреймы
+    * и возвроащает по одному через packet_ за каждый вызов
+    * В packet_ как-то должна хранится ссылка на следующий фрейм
+    */
     int ret_read_frame = av_read_frame(formatContext, &packet_);
 
     //=====Проверка на конец файла
     if (ret_read_frame < 0)
-    {
-        std::cout << "=============== End Of File ===============" << std::endl;
         return 0;
-    }
+
+    return 1;
+}
+
+int HevcQImageEngine::setCodecCtx()
+{
+    // Находим видео поток
+    vCodecCtx			= nullptr;
+    AVCodec *vcodec		= nullptr;
+    img_convert_context = nullptr;
+
+    if (formatContext->streams[id_stream_]->codecpar->codec_type != AVMEDIA_TYPE_VIDEO)
+        return -1;
+
+    // Получаем декодер для кодека видео потока
+    vcodec = avcodec_find_decoder(formatContext->streams[id_stream_]->codecpar->codec_id);
+
+    // Декодер не найден
+    if (!vcodec)
+        return -2;
+
+    // Создаем контекст кодека
+    vCodecCtx = avcodec_alloc_context3(vcodec);
+    if (!vCodecCtx)
+        return -3;
+
+    // Настраиваем контекст кодека
+    if (avcodec_parameters_to_context(
+            vCodecCtx, formatContext->streams[id_stream_]->codecpar) < 0)
+        return -4;
+
+    // Открываем кодек
+    if (avcodec_open2(vCodecCtx, vcodec, nullptr) < 0)
+        return -5;
+
+    img_convert_context = sws_getCachedContext(
+        NULL, vCodecCtx->width, vCodecCtx->height, vCodecCtx->pix_fmt,
+        vCodecCtx->width, vCodecCtx->height, AV_PIX_FMT_RGB24, SWS_BILINEAR, NULL,
+        NULL, NULL);
     return 1;
 }
 
 int HevcQImageEngine::initialization(std::string path)
 {
-
     av_register_all();	  // Регистрация всех доступных форматов и кодеков
+    open_file_name_ = path;
 
-    open_file_name_ = path;	   //Имя вашего HEVC файла
-
-    std::cout << "=============== Filename: " << open_file_name_.c_str()
-              << " ===============" << std::endl;
-
-    //===================================================Обработка ошибок: возврат
-    //от -1 до -9
     formatContext = avformat_alloc_context();
     if (!formatContext)
         return -1;
@@ -60,110 +89,97 @@ int HevcQImageEngine::initialization(std::string path)
     if (avformat_find_stream_info(formatContext, nullptr) < 0)
         return -3;
 
-    // Находим видео поток
-    vCodecCtx			= nullptr;
-    AVCodec *vcodec		= nullptr;
-    img_convert_context = nullptr;
-
-    std::cout << "=============== Number of streams: "
-              << formatContext->nb_streams
-              << " ===============" << std::endl;
-
-    if (formatContext->streams[id_stream_]->codecpar->codec_type != AVMEDIA_TYPE_VIDEO)
+    if (setCodecCtx() < 0)
         return -4;
 
-    // Получаем декодер для кодека видео потока
-    vcodec = avcodec_find_decoder(formatContext->streams[id_stream_]->codecpar->codec_id);
-
-    // Декодер не найден
-    if (!vcodec)
+    if (!preparePictureArray())
         return -5;
 
-    // Создаем контекст кодека
-    vCodecCtx = avcodec_alloc_context3(vcodec);
-    if (!vCodecCtx)
-        return -6;
+    fps_ = formatContext->streams[id_stream_]->avg_frame_rate.num / formatContext->streams[id_stream_]->avg_frame_rate.den;
 
-    // Настраиваем контекст кодека
-    if (avcodec_parameters_to_context(
-            vCodecCtx, formatContext->streams[id_stream_]->codecpar) < 0)
-        return -7;
+    getTotalFrames();
+    findFirstKeyFrame();
+    initializationPrintData();
 
-    // Открываем кодек
-    if (avcodec_open2(vCodecCtx, vcodec, nullptr) < 0)
-        return -8;
+    return 0;
+}
 
-    img_convert_context = sws_getCachedContext(
-        NULL, vCodecCtx->width, vCodecCtx->height, vCodecCtx->pix_fmt,
-        vCodecCtx->width, vCodecCtx->height, AV_PIX_FMT_RGB24, SWS_BILINEAR, NULL,
-        NULL, NULL);
+bool HevcQImageEngine::preparePictureArray()
+{
+    int numBytes =
+        avpicture_get_size(AV_PIX_FMT_RGB24, vCodecCtx->width, vCodecCtx->height);
 
+    //Очищаем от хлама
     if (vbuffer_ != 0)
         av_free(vbuffer_);
 
-    // Determine required buffer size and allocate buffer
-    int numBytes =
-        avpicture_get_size(AV_PIX_FMT_RGB24, vCodecCtx->width, vCodecCtx->height);
     vbuffer_ = (uint8_t *)av_malloc(numBytes * sizeof(uint8_t));
 
+    //Очищаем от хлама
     if (vFrameRGB_ != NULL)
         av_frame_free(&vFrameRGB_);
+
     vFrameRGB_ = av_frame_alloc();
     avpicture_fill((AVPicture *)vFrameRGB_, vbuffer_, AV_PIX_FMT_RGB24,
                    vCodecCtx->width, vCodecCtx->height);
-
-    std::cout << "=============== Time base video codec tbc: "
-              << vCodecCtx->time_base.num << "/" << vCodecCtx->time_base.den
-              << " ===============" << std::endl;
-    std::cout << "=============== Time base video codec tbn: "
-              << formatContext->streams[id_stream_]->time_base.num << "/"
-              << formatContext->streams[id_stream_]->time_base.den
-              << " ===============" << std::endl;
 
     frame_ = av_frame_alloc();
     avpicture_fill((AVPicture *)frame_, vbuffer_, AV_PIX_FMT_RGB24,
                    vCodecCtx->width, vCodecCtx->height);
     if (!frame_)
-        return -9;
+        return 0;
 
     av_init_packet(&packet_);
 
-    // выбираем наш поток  заданным id = 0
-    //(установлено в момент создания ffmpeg)
-    stream_ = formatContext->streams[id_stream_];
+    return 1;
+}
 
-    fps_ = stream_->avg_frame_rate.num / stream_->avg_frame_rate.den;
-    std::cout << "=============== FPS: " << fps_
-              << " ===============" << std::endl;
-
-    //=================Прогоняем видео для подсчета общего количества фреймов и определения первого ключевого фрейма
-
-    int end_of_file	 = 1;
-    bool find_false	 = false;
-    int true_counter = 0;
-    while (end_of_file)
+void HevcQImageEngine::getTotalFrames()
+{
+    //=================Прогоняем видео для подсчета общего количества фреймов
+    while (1)
     {
-        end_of_file = readFrame();
-        if (!find_false)	//??
-        {
-            if (packet_.stream_index == id_stream_)
-            {
-                int frame_finished;
-                avcodec_decode_video2(vCodecCtx, frame_, &frame_finished, &packet_);
-                if (frame_->key_frame)
-                    ++true_counter;
-                else
-                    find_false = true;
-            }
-        }
+        if (!readFrame())
+            break;
         av_packet_unref(&packet_);
         ++total_frames_;
     }
-    --total_frames_;	//из-за последнего входа в цикл, когда файл пуст
-    first_keyframe_ = true_counter - 1;
-    //===========================================================
+    //при всех 0 сбрасывается на начало видео
+    avio_seek(formatContext->pb, 0, SEEK_SET);
+}
 
-    std::cout << "=============== First kayframe: " << first_keyframe_ << " ===============" << std::endl;
+void HevcQImageEngine::findFirstKeyFrame()
+{
+    int true_counter = 0;
+    while (1)
+    {
+        readFrame();
+
+        if (packet_.stream_index == id_stream_)
+        {
+            int frame_finished;
+            avcodec_decode_video2(vCodecCtx, frame_, &frame_finished, &packet_);
+            if (frame_->key_frame)
+                ++true_counter;
+            else
+                break;
+        }
+        av_packet_unref(&packet_);
+    }
+    first_keyframe_ = true_counter - 1;
+    avio_seek(formatContext->pb, 0, SEEK_SET);
+}
+
+void HevcQImageEngine::initializationPrintData()
+{
+    std::cout << "=============== Filename: " << open_file_name_.c_str()
+              << " ===============" << std::endl;
+    std::cout << "=============== Number of streams: "
+              << formatContext->nb_streams
+              << " ===============" << std::endl;
+    std::cout << "=============== FPS: " << fps_
+              << " ===============" << std::endl;
+    std::cout << "=============== First keyframe: " << first_keyframe_ << " ===============" << std::endl;
     std::cout << "=============== Total Frames: " << total_frames_
               << " ===============" << std::endl;
 
@@ -176,28 +192,14 @@ int HevcQImageEngine::initialization(std::string path)
     std::cout << "=============== Time: " << ((hours < 10) ? ("0") : (""))
               << hours << ":" << ((minutes < 10) ? ("0") : ("")) << minutes << ":"
               << seconds << " ===============" << std::endl;
-
-    avio_seek(formatContext->pb, 0,
-              SEEK_SET);	//при всех 0 сбрасывается на начало видео
-    return 0;
 }
 
-//вернет 1 если создан QImage, 0 если не удалось
 bool HevcQImageEngine::processingFrame()
 {
-
     if (packet_.stream_index == id_stream_)
     {
+        int frame_finished;	   //флаг, не 0 если фрейм декодирован
 
-        int frame_finished;
-
-        /*
-       *  vCodecCtx - кодек
-       *  frame_ - фрейм packet_ после декодирования
-       *  frame_finished - флаг, не 0 если фрейм декодирован
-       *  packet_ - пакет с данными (недекодированый фрейм), полученными из
-       * av_read_frame
-       */
         avcodec_decode_video2(vCodecCtx, frame_, &frame_finished, &packet_);
         if (frame_finished)
         {
@@ -215,10 +217,9 @@ bool HevcQImageEngine::processingFrame()
             return 0;
     }
 }
-//получаем sei из фрейма и записываем в ту структуру, которая передается через параметры
+
 bool HevcQImageEngine::getSei()
 {
-
     if (frame_->nb_side_data > 0)
     {
         AVFrameSideData *sd = frame_->side_data[0];
@@ -239,7 +240,10 @@ bool HevcQImageEngine::play(bool show_sei)
     if (readFrame())
         processingFrame();
     else
+    {
+        std::cout << "=============== End Of File ===============" << std::endl;
         return 0;
+    }
 
     bool get_sei_flag;
     if (show_sei)

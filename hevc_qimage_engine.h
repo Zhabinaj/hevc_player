@@ -35,7 +35,7 @@ public:
     *
     * @param path path to chosen hevc file
     *
-    * @return zero on success, from -1 to -10 on failure
+    * @return zero on success, from -1 to -5 on failure
     */
     int initialization(std::string);
 
@@ -43,8 +43,10 @@ public:
     //возвращ 0 когда достигнуть конец файла
     bool readFrame();
 
+    //вернет 1 если создан QImage, 0 если не удалось
     bool processingFrame();	   //private?
 
+    //получаем sei из фрейма и записываем в ту структуру, которая передается через параметры
     bool getSei();	  //private?
 
     void drawDataOnFrame();
@@ -76,9 +78,8 @@ private:
     AVFrame *frame_;
     AVFrame *vFrameRGB_;
 
-    AVStream *stream_;
-
 public:
+    //packet_ - пакет с данными (недекодированый фрейм), полученными из av_read_frame
     AVPacket packet_;
     /**
      * q_img_ one image for Image Provider, built from a given vFrameRGB_
@@ -105,6 +106,18 @@ public:
 
 signals:
     void signalQImageReady(int, QImage);
+
+private:
+    //вернет 1 если всё ок, от -1 до -5 если ошибка
+    int setCodecCtx();
+    // подготавливем массивы для хранения изображения frame_ и vFrameRGB_
+    // вернет 0 если не удалось подготовить массив для frame_
+    bool preparePictureArray();
+
+    //вывод данных, полученных во время инициализации
+    void initializationPrintData();
+    void getTotalFrames();
+    void findFirstKeyFrame();
 };
 
 #endif	  // HEVCQIMAGEENGINE_H

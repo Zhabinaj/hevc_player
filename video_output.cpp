@@ -240,7 +240,7 @@ void VideoOutput::allocate_frame_buffer()
     video_output_stream_.frame = av_frame_alloc();
     if (!video_output_stream_.frame)
     {
-        // LOG_ERROR<<"av_frame_alloc failed.";
+        std::cout << "av_frame_alloc failed" << std::endl;
         return;
     }
 
@@ -249,31 +249,23 @@ void VideoOutput::allocate_frame_buffer()
     video_output_stream_.frame->height = height_;
 
     if (av_frame_get_buffer(video_output_stream_.frame, 32) < 0)
-    {
-        // LOG_ERROR<<"Could not allocate frame data";
-    }
+        std::cout << "Could not allocate frame data" << std::endl;
 }
 void VideoOutput::AddStream()
 {
     video_codec_ = avcodec_find_encoder(output_stream_codec_ID_);
     if (!video_codec_)
-    {
         std::cout << "Could not find encoder  " << std::endl;
-    }
 
     video_output_stream_.Stream = avformat_new_stream(out_format_context_, nullptr);
     if (!video_output_stream_.Stream)
-    {
         std::cout << "Could not allocate stream" << std::endl;
-    }
 
     video_output_stream_.Stream->id	  = out_format_context_->nb_streams - 1;
     video_output_stream_.codecContext = avcodec_alloc_context3(video_codec_);
 
     if (!video_output_stream_.codecContext)
-    {
         std::cout << "Could not alloc an encoding context" << std::endl;
-    }
 
     video_output_stream_.codecContext->bit_rate = 1024 * bit_rate_;
     video_output_stream_.codecContext->codec_id = output_stream_codec_ID_;
@@ -329,18 +321,15 @@ void VideoOutput::stop_output_stream()
         {
             const auto ret = put_frame_to_stream();
             if (ret < 0)
-            {
-                // LOG_ERROR << "Error while writing video frame:" << ret;
-            }
+                std::cout << "Error while writing video frame: " << ret << std::endl;
+
             av_packet_unref(&out_packet_);
         }
     }
 
     const auto ret = av_write_trailer(out_format_context_);
     if (ret < 0)
-    {
-        // LOG_ERROR<<"writing trailer error: "<< ret;
-    }
+        std::cout << "Writing trailer error: " << ret << std::endl;
 
     CloseStream();
 
@@ -357,10 +346,7 @@ void VideoOutput::CloseStream()
     {
         const auto ret = avio_closep(&out_format_context_->pb);
         if (ret < 0)
-        {
-            //			LOG_ERROR << "CloseStream close failed";
-        }
+            std::cout << "CloseStream close failed" << std::endl;
     }
-
     avformat_free_context(out_format_context_);
 }

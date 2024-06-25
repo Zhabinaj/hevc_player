@@ -14,8 +14,8 @@ ApplicationWindow {
     title: main_window_title
     visibility: "Maximized"
     color: "#363636"
-    minimumWidth: 800
-    minimumHeight: 600
+    minimumWidth: 1024
+    minimumHeight: 768
 
 
     onClosing:{
