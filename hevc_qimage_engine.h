@@ -97,7 +97,7 @@ public:
     //Additional metadata
     int fps_;						//may use for save?
     std::string open_file_name_;	//Имя открытого HEVC файла
-    int first_keyframe_ = 0;		//по умолчанию нулевой
+    int first_keyframe_ = 1;		//по умолчанию первый
 
     /**
      * sei_data_ struct for storage of Supplemental Enhancement Information (SEI), received from each frame

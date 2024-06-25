@@ -2,7 +2,6 @@
 
 #include <QDir>
 #include <QString>
-#include <iostream>
 #include <string>
 #include <unistd.h>
 
@@ -40,6 +39,7 @@ void Session::open()
     player_->engine_player_->play(player_->show_sei_);
 
     emit totalFramesChanged(player_->engine_player_->total_frames_);
+    emit currentFrameChanged(player_->player_current_frame_);
     emit initializationCompleted();
 }
 
@@ -89,7 +89,6 @@ void Session::playThread()
 
         if (nextFrameClicked)
             playing_status_ = PLAYING_STATUS::PAUSE;
-        //pauseButtonClicked();
     }
 }
 
@@ -106,8 +105,6 @@ void Session::nextFrameButtonClicked()
 {
     nextFrameClicked = 1;
     playThread();
-    //playButtonClicked();
-    //pauseButtonClicked();
     nextFrameClicked = 0;
 }
 
@@ -125,8 +122,20 @@ void Session::changeFrameFromSlider(int target_frame)
         pauseButtonClicked();
         was_playing = true;
     }
-    player_->setFrame(target_frame);
-    emit currentFrameChanged(player_->player_current_frame_);
+    //=== костыль, иначе со слайдера не работает перемещение на 1й фрейм
+    if (target_frame == 1)
+    {
+        target_frame = 2;
+        player_->setFrame(target_frame);
+        prevFrameButtonClicked();
+    }
+    //===
+    else
+    {
+        player_->setFrame(target_frame);
+        emit currentFrameChanged(player_->player_current_frame_);
+    }
+
     if (was_playing)
         playButtonClicked();
 }

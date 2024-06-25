@@ -31,11 +31,18 @@ RowLayout {
                 current_frame_label.changeLabelText(current_frame_);
                 frame_slider.value = current_frame_;
             }
-		if (current_frame_<=0)
+            if (current_frame_<=1)
                 prev_frame_button.enabled = false;
             else
                 prev_frame_button.enabled = true;
+            if (current_frame_ >=frame_slider.to)
+                next_frame_button.enabled = false;
+            else
+                next_frame_button.enabled = true;
+
         }
+
+
         onVideoWasOver:{
             if (player_control.playing)
                 player_control.playback_button.clicked();
@@ -217,7 +224,7 @@ RowLayout {
             font.weight: Font.Light
             from: 0.0
             to: 1.0
-            stepSize: 1.0
+            stepSize: 1
 
             Layout.fillHeight: true
             Layout.fillWidth: true
@@ -263,6 +270,7 @@ RowLayout {
             }
 
             function changeToValue(frame) {
+                frame_slider.from = 1;
                 frame_slider.to = frame;
             }
 
@@ -273,17 +281,17 @@ RowLayout {
 
             onPressedChanged: {
                 if (!frame_slider.pressed)
-                    {   if (frame_slider.value>=frame_slider.to)
-                        player_control.next_frame_button.enabled = false;
-                    else
-                        player_control.next_frame_button.enabled = true;
-                    if (frame_slider.value<=frame_slider.from)
-                        player_control.prev_frame_button.enabled = false;
-                    else
-                        player_control.prev_frame_button.enabled = true;
+                    {
+                        if (frame_slider.value>=frame_slider.to)
+                            player_control.next_frame_button.enabled = false;
+                        else
+                            player_control.next_frame_button.enabled = true;
+                        if (frame_slider.value<=frame_slider.from)
+                            player_control.prev_frame_button.enabled = false;
+                        else
+                            player_control.prev_frame_button.enabled = true;
 
-
-                    console.log("Frame from slider: "+frame_slider.value)
+                    //console.log("Frame from slider: "+frame_slider.value)
                     session.changeFrameFromSlider(frame_slider.value)
                 };
             }

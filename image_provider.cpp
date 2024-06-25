@@ -9,7 +9,6 @@
 ImageProvider::ImageProvider(QObject *parent)
 : QObject(parent), QQuickImageProvider(QQuickImageProvider::Image)
 {
-
     img = QImage(WINDOW_FRAME_W, WINDOW_FRAME_H, QImage::Format_RGB888);
     img.fill(0);
     hevcTV = QImage(WINDOW_FRAME_W, WINDOW_FRAME_H, QImage::Format_RGB888);

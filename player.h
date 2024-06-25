@@ -14,7 +14,7 @@ public:
     HevcQImageEngine* engine_player_;
 
     // player_current_frame_ is a number of the last processed frame
-    int player_current_frame_ = 0;
+    int player_current_frame_ = 1;
 
     // for jumping to frame
     int closest_key_frame;
@@ -28,6 +28,9 @@ public:
     ~Player();
 
     void setFrame(int);
+
+private:
+    void findClosestKeyFrame(int);
 
 signals:
     void qImagePlayer(int, QImage);

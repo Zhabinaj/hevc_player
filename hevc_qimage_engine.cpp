@@ -210,7 +210,6 @@ bool HevcQImageEngine::processingFrame()
             q_img_ = QImage((uchar *)vFrameRGB_->data[0], vCodecCtx->width,
                             vCodecCtx->height, QImage::Format_RGB888);
             av_packet_unref(&packet_);
-
             return 1;
         }
         else
