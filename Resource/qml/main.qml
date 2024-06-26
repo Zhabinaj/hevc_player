@@ -28,7 +28,7 @@ ApplicationWindow {
         anchors.fill: parent
         columns: 4
         rows: 3
-        anchors.margins: 6
+        anchors.margins: 10
         RowLayout
         {
             anchors.fill: parent
@@ -50,19 +50,28 @@ ApplicationWindow {
                 Layout.column: 2
                 Layout.row: 0
             }
-
+/*
             PlayerControl {
                 id: player_control
                 Layout.column: 3
                 Layout.row: 0
-            }
+            }*/
         }
 
         VideoFlow {
             id: video_flow
             Layout.column: 0
-            Layout.row: 2
+            Layout.row: 1
             Layout.columnSpan: 4
         }
+
+        PlayerControl {
+            id: player_control
+            Layout.maximumHeight: 40
+            Layout.column: 0
+            Layout.columnSpan: 4
+            Layout.row: 2
+        }
+
     }
 }

@@ -47,6 +47,7 @@ public:
     bool processingFrame();	   //private?
 
     //получаем sei из фрейма и записываем в ту структуру, которая передается через параметры
+    //вернет 1 если всё ок
     bool getSei();	  //private?
 
     void drawDataOnFrame();
@@ -97,7 +98,7 @@ public:
     //Additional metadata
     int fps_;						//may use for save?
     std::string open_file_name_;	//Имя открытого HEVC файла
-    int first_keyframe_ = 1;		//по умолчанию первый
+    int first_keyframe_;			//по умолчанию первый
 
     /**
      * sei_data_ struct for storage of Supplemental Enhancement Information (SEI), received from each frame
