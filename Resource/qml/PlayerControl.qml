@@ -33,12 +33,12 @@ RowLayout {
             }
             if (current_frame_<=1)
                 prev_frame_button.enabled = false;
-            else
-                prev_frame_button.enabled = true;
+            //else
+             //   prev_frame_button.enabled = true;
             if (current_frame_ >=frame_slider.to)
                 next_frame_button.enabled = false;
-            else
-                next_frame_button.enabled = true;
+           // else
+            //    next_frame_button.enabled = true;
 
         }
 
@@ -234,36 +234,6 @@ RowLayout {
 
             handle.implicitHeight: 25
             handle.implicitWidth: 25
-            //background.height: 4 если включить, то начнет ломаться часть слайдера с пройденным участком
-
-            /*  Для кастомного слайдера
-            background: Rectangle {
-                x: frame_slider.leftPadding
-                y: frame_slider.topPadding + frame_slider.availableHeight / 2 - height / 2
-                // implicitWidth: 600
-                //width: frame_slider.availableWidth
-                height: 4 //высота полоски слайдера
-                radius: 2 //радиус скругления правой стороны
-                color: "#bdbebf" //цвет полоски слайдера
-
-                Rectangle {
-                    // width: frame_slider.visualPosition * parent.implicitWidth
-                    height: parent.height
-                    color: "#21be2b" //цвет пройденного слайдера
-                    radius: 2 //радиус скругления левой стороны
-                }
-            }
-
-            handle: Rectangle {
-                x: frame_slider.leftPadding + frame_slider.visualPosition * (frame_slider.availableWidth - width)
-                y: frame_slider.topPadding + frame_slider.availableHeight / 2 - height / 2
-
-                implicitWidth: 25
-                implicitHeight: 25 //размер кружка
-                radius: 15 //радиус скругления
-                color: frame_slider.pressed ? "#d8d8d8" : "#f6f6f6" // цвет при нажатии / цвет в обычном состоянии
-                border.color: "#bdbebf" //цвет контура кружка
-            }*/
 
             function setDefault() {
                 frame_slider.value = 0.0;
@@ -284,14 +254,8 @@ RowLayout {
                     {
                         if (frame_slider.value>=frame_slider.to)
                             player_control.next_frame_button.enabled = false;
-                        else
-                            player_control.next_frame_button.enabled = true;
                         if (frame_slider.value<=frame_slider.from)
                             player_control.prev_frame_button.enabled = false;
-                        else
-                            player_control.prev_frame_button.enabled = true;
-
-                    //console.log("Frame from slider: "+frame_slider.value)
                     session.changeFrameFromSlider(frame_slider.value)
                 };
             }
