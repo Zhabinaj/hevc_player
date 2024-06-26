@@ -150,7 +150,8 @@ void HevcQImageEngine::getTotalFrames()
 
 void HevcQImageEngine::findFirstKeyFrame()
 {
-    int true_counter = 0;
+    first_keyframe_ = 1;
+
     while (1)
     {
         readFrame();
@@ -160,13 +161,12 @@ void HevcQImageEngine::findFirstKeyFrame()
             int frame_finished;
             avcodec_decode_video2(vCodecCtx, frame_, &frame_finished, &packet_);
             if (frame_->key_frame)
-                ++true_counter;
+                ++first_keyframe_;
             else
                 break;
         }
         av_packet_unref(&packet_);
     }
-    first_keyframe_ = true_counter - 1;
     avio_seek(formatContext->pb, 0, SEEK_SET);
 }
 

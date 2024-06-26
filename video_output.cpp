@@ -3,6 +3,8 @@
 #include <filesystem>
 #include <iostream>
 
+#define SAVE_COMPLETED 100
+
 VideoOutput::VideoOutput(std::string save_path, bool save_sei, QObject* parent) : QObject(parent)
 {
     save_file_path_ = save_path;
@@ -15,66 +17,51 @@ VideoOutput::~VideoOutput()
     delete engine_player_;
 }
 
+void VideoOutput::updateProgress(int frame)
+{
+    int one_percent = ((engine_player_->total_frames_) / 100);
+
+    int progress = frame / one_percent;
+    if (progress >= 100)
+        progress = 99;
+
+    emit savingProgress(progress);
+}
+
 void VideoOutput::saveVideo()
 {
-    std::cout << "=============== Save path: " << save_file_path_ << " ===============" << std::endl;
-    std::cout << "=============== Save option: " << ((save_SEI_ == 1) ? ("With SEI") : ("Without SEI")) << " ===============" << std::endl;
-
     saving = true;
 
     avio_seek(engine_player_->formatContext->pb, 0, SEEK_SET);
 
-    current_frame_ = -1;
-    bool need_init = true;
-    // где-то тут начинаем while пока файл не закончился
-
-    int one_percent = ((engine_player_->total_frames_) / 100);
-    int progress;
-
     for (int i = engine_player_->first_keyframe_; i < engine_player_->total_frames_; ++i)
     {
-
         engine_player_->readFrame();
         engine_player_->processingFrame();
         if (save_SEI_)
         {
-            //сохраняем каждый фрейм с сеи
-            if (engine_player_->getSei())			  //вернет 1 если всё ок
-                engine_player_->drawDataOnFrame();	  //отправляем в рисовашку
-            else
-                std::cout << "Error get sei" << std::endl;
+            engine_player_->getSei();
+            engine_player_->drawDataOnFrame();
         }
-        ++current_frame_;
 
-        //инициализация выходного стрима
-        if (need_init)
-        {
+        if (i == engine_player_->first_keyframe_)
             initializeOutputStream();
-            need_init = false;
-        }
 
         if (output_video_stream_initialized_)
             encode_video_frame_and_put_to_stream();	   //где-то тут ошибка с таймшптамом
 
-        if (i != 0)
-        {
-            progress = i / one_percent;
-            if (progress >= 100)
-                progress = 99;
-            emit savingProgress(progress);
-        }
+        updateProgress(i);
 
         // корректно прерываем сохранения, устанавливая текущий фрейм = последний
         if (!saving)
             i = engine_player_->total_frames_;
     }
     stop_output_stream();
-    progress = 100;	   //отправляем -1 когда сохранение завершено и поток остановлен
-    emit savingProgress(progress);
+    emit savingProgress(SAVE_COMPLETED);
 }
+
 void VideoOutput::encode_video_frame_and_put_to_stream()
 {
-
     if (engine_player_->q_img_.width() != video_output_stream_.codecContext->width || engine_player_->q_img_.height() != video_output_stream_.codecContext->height ||
         static_cast<int>(channels_) != video_output_stream_.codecContext->channels)
     {
@@ -153,12 +140,11 @@ bool VideoOutput::initializeOutputStream()
     // init ffmpeg
     out_packet_ = AVPacket();
     av_init_packet(&out_packet_);
+
     avformat_alloc_output_context2(&out_format_context_, nullptr, nullptr, output_video_url_.c_str());
     if (!out_format_context_)
-    {
-        // LOG_ERROR << "cannot alloc format context";
         return false;
-    }
+
     output_format_	 = out_format_context_->oformat;
     const auto codec = avcodec_find_encoder(output_stream_codec_ID_);
 
@@ -171,9 +157,7 @@ bool VideoOutput::initializeOutputStream()
     }
 
     if (!OpenVideo())
-    {
         return false;
-    }
 
     video_output_stream_.NextPts = 0;
     av_dump_format(out_format_context_, 0, output_video_url_.c_str(), 1);
@@ -181,17 +165,11 @@ bool VideoOutput::initializeOutputStream()
     if (!(output_format_->flags & AVFMT_NOFILE))
     {
         if (avio_open(&out_format_context_->pb, output_video_url_.c_str(), AVIO_FLAG_WRITE) < 0)
-        {
-            // LOG_ERROR<<"Could not open "<< output_stream_file_name.c_str();
             return false;
-        }
     }
 
     if (avformat_write_header(out_format_context_, &Opt_) < 0)
-    {
-        // LOG_ERROR << "Error occurred when writing header to: " << output_stream_file_name.c_str();
         return false;
-    }
 
     InLineSize[0] = width_ * channels_;
 

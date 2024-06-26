@@ -16,7 +16,7 @@ private:
     uint64_t height_;
     uint64_t channels_;
     bool output_video_stream_initialized_ = false;
-    int total_frames_number_			  = 0;
+    int total_frames_number_			  = 0;	  //зачем отдельно в этом классе, почему не использовать от engine_player_?
 
     struct OutputStream
     {
@@ -34,8 +34,6 @@ public:
     std::string save_file_path_;	//перевести в класс hevc_qimage_engine
     std::string open_file_path_;
     //std::string output_video_url_;
-
-    int current_frame_;
 
     bool save_SEI_;	   // = 0;	   //по умолчанию не сохраняем
 
@@ -83,6 +81,9 @@ public:
     void stop_output_stream();
 
     void CloseStream();
+
+private:
+    void updateProgress(int);
 signals:
     void savingProgress(int progress);
 };
