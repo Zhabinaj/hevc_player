@@ -57,6 +57,7 @@ void Session::reset()
 
     delete player_;
     delete video_output_;
+    video_output_ = nullptr;
 }
 
 void Session::playButtonClicked()
