@@ -5,6 +5,8 @@
 #include <string>
 #include <unistd.h>
 
+#include <iostream>
+
 #define STREAM_TV 0
 
 Session::Session(QObject *parent) : QObject(parent)
@@ -81,11 +83,14 @@ void Session::playThread()
         std::this_thread::sleep_for(std::chrono::microseconds(40000));
         if (flag == 0)
         {
+            std::cout << "EOF" << std::endl;
             emit videoWasOver();
             break;
         }
+
         ++(player_->player_current_frame_);
 
+        std::cout << "Frame " << player_->player_current_frame_ << std::endl;
         emit currentFrameChanged(player_->player_current_frame_);
 
         if (nextFrameClicked)

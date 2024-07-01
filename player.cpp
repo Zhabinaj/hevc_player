@@ -14,7 +14,11 @@ Player::~Player()
 
 void Player::findClosestKeyFrame(int target)
 {
-    closest_key_frame = target / engine_player_->fps_;
+    if (target % 25 == 0)
+        closest_key_frame = (target - 1) / engine_player_->fps_;
+    else
+        closest_key_frame = target / engine_player_->fps_;
+
     closest_key_frame = (closest_key_frame * engine_player_->fps_) + 1;
 
     if (closest_key_frame <= 25)

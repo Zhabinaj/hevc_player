@@ -31,14 +31,14 @@ RowLayout {
                 current_frame_label.changeLabelText(current_frame_);
                 frame_slider.value = current_frame_;
             }
-            if (current_frame_<=1)
+            if (current_frame_<=1   )
                 prev_frame_button.enabled = false;
-            //else
-             //   prev_frame_button.enabled = true;
+            else if (player_control.playing == false)
+                prev_frame_button.enabled = true;
             if (current_frame_ >=frame_slider.to)
                 next_frame_button.enabled = false;
-           // else
-            //    next_frame_button.enabled = true;
+            else if (player_control.playing == false)
+                next_frame_button.enabled = true;
 
         }
 
@@ -70,8 +70,9 @@ RowLayout {
         palette.buttonText: "#d5cfcf"
 
         onClicked: { 
-	player_control.next_frame_button.enabled = true;
-	session.prevFrameButtonClicked() }
+            player_control.next_frame_button.enabled = true;
+            session.prevFrameButtonClicked()
+        }
 
         Layout.column: 1
         Layout.row: 0
@@ -157,108 +158,86 @@ RowLayout {
         font.pointSize: 10
     }
 
-    ColumnLayout {
-        Layout.preferredHeight: 50
-        Layout.leftMargin: 5
-        RowLayout {
-            Layout.leftMargin: 15
-            //Layout.rightMargin: 15
-            Label {
-                id: current_frame_label
-                text: qsTr("Frame 0")
-                horizontalAlignment: Text.AlignHCenter
-                verticalAlignment: Text.AlignVCenter
-                transformOrigin: Item.Center
+    Label {
+        id: current_frame_label
+        text: qsTr("Frame 0")
+        horizontalAlignment: Text.AlignHCenter
+        verticalAlignment: Text.AlignVCenter
+        transformOrigin: Item.Center
 
-                color: "#d5cfcf"
-                property string current_frame: "Frame "
+        color: "#d5cfcf"
+        property string current_frame: "Frame "
 
-                function setDefault() {
-                    text = qsTr("Frame 0");
-                }
-
-                function changeLabelText(frame_number) {
-                    text = qsTr("Frame " + frame_number);
-                }
-
-                Layout.column: 1
-                Layout.row: 1
-                Layout.fillHeight: true
-                Layout.fillWidth: true
-                Layout.alignment: Qt.AlignCenter
-                Layout.preferredWidth: 60
-                Layout.preferredHeight: 25
-                font.pointSize: 10
-            }
-
-            Label {
-                id: total_frames_label
-                text: qsTr("from total 0")
-                verticalAlignment: Text.AlignVCenter
-                color: "#d5cfcf"
-
-                //======== по умолчанию from total 0
-                function setDefault() {
-                    text = qsTr("from total 0");
-                }
-
-                function changeLabelText(frames_count) {
-                    text = qsTr("from total " + frames_count);
-                }
-                //==========
-
-                Layout.column: 2
-                Layout.row: 1
-                Layout.fillHeight: true
-                Layout.fillWidth: true
-                Layout.alignment: Qt.AlignCenter
-                Layout.preferredWidth: 60
-                Layout.preferredHeight: 25
-                font.pointSize: 10
-            }
+        function setDefault() {
+            text = qsTr("Frame 0");
         }
 
-        Slider {
-            id: frame_slider
-            enabled: false
-            font.weight: Font.Light
-            from: 0.0
-            to: 1.0
-            stepSize: 1
+        function changeLabelText(frame_number) {
+            text = qsTr("Frame " + frame_number);
+        }
 
-            Layout.fillHeight: true
-            Layout.fillWidth: true
-            Layout.alignment: Qt.AlignCenter
+        Layout.alignment: Qt.AlignCenter
+        Layout.preferredWidth: 110
+        Layout.preferredHeight: 25
+        font.pointSize: 10
+    }
 
-            Layout.preferredHeight: 25 //высота расположения слайдера
+    Slider {
+        id: frame_slider
+        enabled: false
+        font.weight: Font.Light
+        from: 0.0
+        to: 1.0
+        stepSize: 1
 
-            handle.implicitHeight: 25
-            handle.implicitWidth: 25
+        Layout.fillHeight: true
+        Layout.fillWidth: true
+        Layout.alignment: Qt.AlignCenter
 
-            function setDefault() {
-                frame_slider.value = 0.0;
-            }
+        Layout.preferredHeight: 25 //высота расположения слайдера
 
-            function changeToValue(frame) {
-                frame_slider.from = 1;
-                frame_slider.to = frame;
-            }
+        function setDefault() {
+            frame_slider.value = 0.0;
+        }
 
+        function changeToValue(frame) {
+            frame_slider.from = 1;
+            frame_slider.to = frame;
+        }
             // when user change current frame
-            onMoved: {
-                current_frame_label.changeLabelText(frame_slider.value);
-            }
-
-            onPressedChanged: {
-                if (!frame_slider.pressed)
-                    {
-                        if (frame_slider.value>=frame_slider.to)
-                            player_control.next_frame_button.enabled = false;
-                        if (frame_slider.value<=frame_slider.from)
-                            player_control.prev_frame_button.enabled = false;
-                    session.changeFrameFromSlider(frame_slider.value)
-                };
-            }
+        onMoved: {
+            current_frame_label.changeLabelText(frame_slider.value);
         }
+
+        onPressedChanged: {
+            if (!frame_slider.pressed)
+            {
+                if (frame_slider.value>=frame_slider.to)
+                    player_control.next_frame_button.enabled = false;
+                if (frame_slider.value<=frame_slider.from)
+                    player_control.prev_frame_button.enabled = false;
+                session.changeFrameFromSlider(frame_slider.value)
+            };
+        }
+    }
+
+    Label {
+        id: total_frames_label
+        text: qsTr("0")
+        verticalAlignment: Text.AlignVCenter
+        color: "#d5cfcf"
+
+        function setDefault() {
+            text = qsTr("0");
+        }
+
+        function changeLabelText(frames_count) {
+            text = qsTr(""+frames_count);
+        }
+
+        Layout.alignment: Qt.AlignCenter
+        Layout.preferredWidth: 80
+        Layout.preferredHeight: 25
+        font.pointSize: 10
     }
 }
