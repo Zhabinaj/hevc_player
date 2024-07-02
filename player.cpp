@@ -5,19 +5,12 @@ Player::Player(std::string open_f, QObject* parent) : QObject(parent)
     open_file_path_ = open_f;
     engine_player_	= new HevcQImageEngine(0);
     engine_player_->initialization(open_file_path_);
+    engine_player_->initializationPrintData();
 }
 
 Player::~Player()
 {
     delete engine_player_;
-}
-
-void Player::copyMass(bool sei[12])
-{
-    for (int i = 0; i < 12; ++i)
-    {
-        engine_player_->sei_options_[i] = sei[i];
-    }
 }
 
 void Player::findClosestKeyFrame(int target)

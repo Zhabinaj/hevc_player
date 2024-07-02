@@ -35,8 +35,6 @@ public:
     std::string open_file_path_;
     //std::string output_video_url_;
 
-    bool save_SEI_;	   // = 0;	   //по умолчанию не сохраняем
-
     //для инициализации выходного стрима
     AVPacket out_packet_;
     AVFormatContext* out_format_context_;	 //public
@@ -52,7 +50,7 @@ public:
     bool saving								 = false;
 
 public:
-    explicit VideoOutput(std::string, bool, QObject* parent = 0);
+    explicit VideoOutput(std::string, QObject* parent = 0);
     ~VideoOutput();
     /**
    * @brief Decoding, converting and getting SEI data from one frame
@@ -84,6 +82,7 @@ public:
 
 private:
     void updateProgress(int);
+    bool saveSei();
 signals:
     void savingProgress(int progress);
 };

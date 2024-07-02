@@ -5,10 +5,9 @@
 
 #define SAVE_COMPLETED 100
 
-VideoOutput::VideoOutput(std::string save_path, bool save_sei, QObject* parent) : QObject(parent)
+VideoOutput::VideoOutput(std::string save_path, QObject* parent) : QObject(parent)
 {
     save_file_path_ = save_path;
-    save_SEI_		= save_sei;
     engine_player_	= new HevcQImageEngine(0);
 }
 
@@ -27,6 +26,16 @@ void VideoOutput::updateProgress(int frame)
 
     emit savingProgress(progress);
 }
+// если выбрана хотя бы одна опция для сохранения возвращ 1, в противном случае возвращ 0
+bool VideoOutput::saveSei()
+{
+    for (int i = 0; i < 12; ++i)
+    {
+        if (engine_player_->sei_options_[i])
+            return 1;
+    }
+    return 0;
+}
 
 void VideoOutput::saveVideo()
 {
@@ -38,12 +47,8 @@ void VideoOutput::saveVideo()
     {
         engine_player_->readFrame();
         engine_player_->processingFrame();
-        if (save_SEI_)
+        if (saveSei())
         {
-            //врубаем все сеи
-            for (int i = 0; i < 12; ++i)
-                engine_player_->sei_options_[i] = 1;
-
             engine_player_->getSei();
             engine_player_->drawDataOnFrame();
         }

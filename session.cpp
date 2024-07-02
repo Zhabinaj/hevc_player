@@ -35,8 +35,8 @@ void Session::open()
     // return ret;
 
     player_ = new Player(open_file_path_);
-    connect(player_->engine_player_, SIGNAL(signalQImageReady(int, QImage)), camera_, SLOT(slotChangeQImage(int, QImage)));
-    player_->copyMass(sei_options_s_);
+    player_->engine_player_->connect(player_->engine_player_, SIGNAL(signalQImageReady(int, QImage)), camera_, SLOT(slotChangeQImage(int, QImage)));
+    player_->engine_player_->copyMass(sei_options_s_);
     player_->engine_player_->play();
 
     emit totalFramesChanged(player_->engine_player_->total_frames_);
@@ -153,8 +153,10 @@ void Session::showSei(bool checked)
 void Session::saveThread(QUrl url, bool save_SEI)
 {
     std::string save_path = url.toLocalFile().toStdString();
-    video_output_		  = new VideoOutput(save_path, save_SEI);
-    thread_save_		  = std::thread(&Session::saveVideo, this);
+    video_output_		  = new VideoOutput(save_path);
+    video_output_->engine_player_->copyMass(sei_to_save_);
+
+    thread_save_ = std::thread(&Session::saveVideo, this);
     thread_save_.detach();
 }
 
@@ -178,6 +180,11 @@ void Session::stopSaving()
 void Session::showSei2(int ind, bool flag)
 {
     sei_options_s_[ind] = flag;
-    player_->copyMass(sei_options_s_);
+    player_->engine_player_->copyMass(sei_options_s_);
     //записываем всё в массив
+}
+
+void Session::seiToSave(int ind, bool flag)
+{
+    sei_to_save_[ind] = flag;
 }

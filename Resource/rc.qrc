@@ -11,5 +11,7 @@
         <file>qml/Options.qml</file>
         <file>ico/alt_icon.png</file>
         <file>qml/CustomSwitch.qml</file>
+        <file>qml/CustomButton.qml</file>
+        <file>qml/SeiToSaveWindow.qml</file>
     </qresource>
 </RCC>

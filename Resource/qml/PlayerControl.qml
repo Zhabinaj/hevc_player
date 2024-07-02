@@ -3,9 +3,9 @@ import QtQuick.Layouts 1.3
 import QtQuick.Controls 2.5
 
 RowLayout {
-    property RoundButton playback_button: playback_button
-    property RoundButton prev_frame_button: prev_frame_button
-    property RoundButton next_frame_button: next_frame_button
+    property CustomButton playback_button: playback_button
+    property CustomButton prev_frame_button: prev_frame_button
+    property CustomButton next_frame_button: next_frame_button
     property Slider frame_slider: frame_slider
     property Label total_frames_label: total_frames_label
     property Label current_frame_label: current_frame_label
@@ -20,11 +20,12 @@ RowLayout {
     Connections {
         target: session
 
-        onTotalFramesChanged: {
+        function onTotalFramesChanged(total_frames_count) {
             total_frames_label.changeLabelText(total_frames_count);
             frame_slider.changeToValue(total_frames_count);
         }
-        onCurrentFrameChanged: {
+
+        function onCurrentFrameChanged(current_frame_) {
             // if slider is not holding then change label and slider info
             if (!frame_slider.pressed){
                 // change slider and label of current frame
@@ -42,8 +43,7 @@ RowLayout {
 
         }
 
-
-        onVideoWasOver:{
+        function onVideoWasOver(){
             if (player_control.playing)
                 player_control.playback_button.clicked();
 		player_control.next_frame_button.enabled = false;
@@ -60,47 +60,28 @@ RowLayout {
         frame_slider.enabled = false;
     }
 
-    RoundButton {
+    CustomButton {
         id: prev_frame_button
         text: qsTr("<")
+
         enabled: false
-
-        palette.button: "#565656"
-        palette.shadow: "#2d2d2d"
-        palette.buttonText: "#d5cfcf"
-
-        onClicked: { 
+        Layout.fillHeight: true
+        Layout.column: 1
+        Layout.row: 0
+        onClicked: {
             player_control.next_frame_button.enabled = true;
             session.prevFrameButtonClicked()
         }
-
-        Layout.column: 1
-        Layout.row: 0
-        Layout.fillHeight: true
-        radius: button_radius
-        Layout.alignment: Qt.AlignCenter
-        Layout.preferredWidth: 50
-        Layout.preferredHeight: 25
-        font.pointSize: 10
     }
 
-    RoundButton {
+    CustomButton {
         id: playback_button
         text: play
+
         enabled: false
-
-        palette.button: "#565656"
-        palette.shadow: "#2d2d2d"
-        palette.buttonText: "#d5cfcf"
-
+        Layout.fillHeight: true
         Layout.column: 2
         Layout.row: 0
-        Layout.fillHeight: true
-        radius: button_radius
-        Layout.alignment: Qt.AlignCenter
-        Layout.preferredWidth: 50
-        Layout.preferredHeight: 25
-        font.pointSize: 10
         onClicked: {
             // pressed play button
             if (!player_control.playing)
@@ -136,37 +117,31 @@ RowLayout {
         }
     }
 
-    RoundButton {
-        id: next_frame_button
-
-        palette.button: "#565656"
-        palette.shadow: "#2d2d2d"
-        palette.buttonText: "#d5cfcf"
-
+    CustomButton {
+        id: next_frame_button        
         text: ">"
+
         enabled: false
-
-        onClicked: { session.nextFrameButtonClicked(); }
-
+        Layout.fillHeight: true
         Layout.column: 3
         Layout.row: 0
-        Layout.fillHeight: true
-        radius: button_radius
-        Layout.alignment: Qt.AlignCenter
-        Layout.preferredWidth: 50
-        Layout.preferredHeight: 25
-        font.pointSize: 10
+        onClicked: { session.nextFrameButtonClicked(); }
     }
 
     Label {
         id: current_frame_label
         text: qsTr("Frame 0")
+
+        property string current_frame: "Frame "
+        color: text_color
+        font.pointSize: 10
+        Layout.preferredWidth: 110
+        Layout.preferredHeight: 25
+
+        Layout.alignment: Qt.AlignCenter
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
         transformOrigin: Item.Center
-
-        color: "#d5cfcf"
-        property string current_frame: "Frame "
 
         function setDefault() {
             text = qsTr("Frame 0");
@@ -174,12 +149,7 @@ RowLayout {
 
         function changeLabelText(frame_number) {
             text = qsTr("Frame " + frame_number);
-        }
-
-        Layout.alignment: Qt.AlignCenter
-        Layout.preferredWidth: 110
-        Layout.preferredHeight: 25
-        font.pointSize: 10
+        }        
     }
 
     Slider {
@@ -224,8 +194,14 @@ RowLayout {
     Label {
         id: total_frames_label
         text: qsTr("0")
+
+        color: text_color
+        font.pointSize: 10
+        Layout.preferredWidth: 80
+        Layout.preferredHeight: 25
+
+        Layout.alignment: Qt.AlignCenter
         verticalAlignment: Text.AlignVCenter
-        color: "#d5cfcf"
 
         function setDefault() {
             text = qsTr("0");
@@ -234,10 +210,5 @@ RowLayout {
         function changeLabelText(frames_count) {
             text = qsTr(""+frames_count);
         }
-
-        Layout.alignment: Qt.AlignCenter
-        Layout.preferredWidth: 80
-        Layout.preferredHeight: 25
-        font.pointSize: 10
     }
 }

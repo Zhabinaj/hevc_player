@@ -45,6 +45,7 @@ public:
     VideoOutput *video_output_ = nullptr;
 
     bool sei_options_s_[12] = {0};
+    bool sei_to_save_[12]	= {0};
 
 signals:
     void videoWasOver();
@@ -77,6 +78,7 @@ public slots:
     void savingProcess(int pop);
     void stopSaving();
     void showSei2(int, bool);
+    void seiToSave(int, bool);
 };
 
 #endif	  // SESSION_H

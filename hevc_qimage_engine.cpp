@@ -19,6 +19,14 @@ HevcQImageEngine::~HevcQImageEngine()
     av_free(vbuffer_);
 }
 
+void HevcQImageEngine::copyMass(bool sei[12])
+{
+    for (int i = 0; i < 12; ++i)
+    {
+        sei_options_[i] = sei[i];
+    }
+}
+
 bool HevcQImageEngine::readFrame()
 {
     /* функция делит содержимое файла formatContext на фреймы
@@ -99,7 +107,7 @@ int HevcQImageEngine::initialization(std::string path)
 
     getTotalFrames();
     findFirstKeyFrame();
-    initializationPrintData();
+    // initializationPrintData();
 
     return 0;
 }

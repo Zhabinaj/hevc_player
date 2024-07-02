@@ -10,8 +10,8 @@ Switch {
         x: control.leftPadding
         y: parent.height / 2 - height / 2
         radius: width/2
-        color: control.checked ? "#17a81a" : "#2d2d2d" //"#17a81a" : "#ffffff"
-        border.width: 2 //youtube
+        color: control.checked ? "#17a81a" : "black"//"#2d2d2d"
+        border.width: 2
         border.color: control.checked ? "#17a81a" : "#cccccc"
 
         Rectangle {

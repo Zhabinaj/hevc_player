@@ -5,11 +5,10 @@ import QtQuick.Dialogs 1.2
 import QtQuick.Layouts 1.3
 
 ApplicationWindow {
-    property int button_radius: 15
+    property string text_color: "#d5cfcf"
     property string main_window_title: qsTr("Hevc player")
 
     id: window
-
     visible: true
     title: main_window_title
     visibility: "Maximized"
@@ -17,9 +16,7 @@ ApplicationWindow {
     minimumWidth: 1024
     minimumHeight: 768
 
-
     onClosing:{
-        console.log("Hevc player is closed")
         session.reset();
     }
 
@@ -31,7 +28,7 @@ ApplicationWindow {
         anchors.margins: 10
         RowLayout
         {
-            anchors.fill: parent
+            anchors.fill: parent //QML ругается в терминал, но без этого сыпется ресайз окна
             Layout.maximumHeight: 40
             OpenVideo {
                 id: open_video
@@ -50,12 +47,6 @@ ApplicationWindow {
                 Layout.column: 2
                 Layout.row: 0
             }
-/*
-            PlayerControl {
-                id: player_control
-                Layout.column: 3
-                Layout.row: 0
-            }*/
         }
 
         VideoFlow {
@@ -72,6 +63,5 @@ ApplicationWindow {
             Layout.columnSpan: 4
             Layout.row: 2
         }
-
     }
 }

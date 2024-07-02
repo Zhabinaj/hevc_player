@@ -5,13 +5,32 @@ import QtQuick.Dialogs 1.3
 import QtQuick.Window 2.3
 
 RowLayout {
-
     property FileDialog file_dialog: file_dialog
-    property RoundButton open_file: open_file
+    property CustomButton open_file: open_file
     property string current_video: ""
     property int error: 0
     property string message_text: ""
     property url last_open_folder: ""
+
+    Connections {
+        target: session
+        function onInitializationCompleted() {
+            popup_test.close()
+            init_done();
+
+            //change Gui After Video Initialization:
+            player_control.playback_button.enabled = true
+            player_control.next_frame_button.enabled = true
+
+            //Frame slider becomes available
+            player_control.frame_slider.enabled = true;
+
+            //options.show_sei.enabled = true;
+            save_video.save_button.enabled = true;
+
+            open_file.enabled = true;
+        }
+    }
 
     function init_done(){
         message_text = "Initialization done";
@@ -40,12 +59,11 @@ RowLayout {
             width: 400
             height: 100
             radius: 15
-            color: "black" //"#240008"//
-            // border.color: "red"
+            color: "black"
             opacity: 0.95
             Text{
                 anchors.centerIn: parent //выравнивание текста по центру
-                color: "#68011a"         //цвет текста
+                color: text_color
                 text: message_text
                 font.pixelSize: 25
             }          
@@ -53,54 +71,26 @@ RowLayout {
         closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutsideParent
     }
 
-    Connections {
-        target: session
-        onInitializationCompleted: {
-            popup_test.close()
-            init_done();
-
-            //change Gui After Video Initialization:
-            player_control.playback_button.enabled = true
-            player_control.next_frame_button.enabled = true
-
-            //Frame slider becomes available
-            player_control.frame_slider.enabled = true;
-
-            //options.show_sei.enabled = true;
-            save_video.save_button.enabled = true;
-
-            open_file.enabled = true;
-        }
-    }
-
     RowLayout
     {
         spacing: 3
         Layout.preferredHeight: 50
         Layout.leftMargin: 5
-        RoundButton {
+        CustomButton {
             id: open_file
             text: "Open file"
 
-            palette.button: "#565656"
-            palette.shadow: "#2d2d2d"
-            palette.buttonText: "#d5cfcf"
-
-            radius: button_radius
             enabled: true
             Layout.fillHeight: true
             Layout.fillWidth: true
-            Layout.alignment: Qt.AlignCenter
-            Layout.preferredWidth: 40
-            Layout.preferredHeight: 25
-            font.pointSize: 10
+
             onClicked: {
                 //Если во время нажатия проигрывается видо, видео ставится на паузу
                 if (player_control.playing)
                     player_control.playback_button.clicked();
 
                 //Если во время нажатия производится инициализация сохранения
-                if (!save_video.can_open_abort)
+                if (!save_video.permission_to_open)
                     save_video.popup_wait.open();
 
                 else{
@@ -128,7 +118,6 @@ RowLayout {
                 video_flow.reset();
                 player_control.reset();
                 save_video.reset();
-                //options.reset();
             }
             open_file.enabled = false;
 

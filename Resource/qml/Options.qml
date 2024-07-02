@@ -4,24 +4,15 @@ import QtQuick.Layouts 1.3
 import QtQuick.Window 2.3
 
 RowLayout{
-    property RoundButton show_sei: show_sei
+    property CustomButton show_sei: show_sei
 
-    RoundButton {
+    CustomButton {
         id: show_sei
         text: "Show SEI"
         enabled: true
-        palette.button: "#565656"
-        palette.shadow: "#2d2d2d"
-        palette.buttonText: "#d5cfcf"
 
-        radius: button_radius
         Layout.fillHeight: true
         Layout.fillWidth: true
-        Layout.alignment: Qt.AlignCenter
-        Layout.preferredWidth: 40
-        Layout.preferredHeight: 25
-        font.pointSize: 10
-
         onClicked: {
             sei_window.show();
             show_sei.enabled = false;
@@ -37,7 +28,7 @@ RowLayout{
         minimumWidth: 450
         maximumWidth: 450
 
-        flags: "WindowCloseButtonHint";
+        flags: Qt.WindowCloseButtonHint
 
         Rectangle {
             width: parent.width

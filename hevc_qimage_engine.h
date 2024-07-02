@@ -64,6 +64,11 @@ public:
     //return 1 when ok, 0 when EOF
     bool play();
 
+    //вывод данных, полученных во время инициализации
+    void initializationPrintData();
+
+    void copyMass(bool[12]);
+
 private:
     //for initialization
 
@@ -121,8 +126,6 @@ private:
     // вернет 0 если не удалось подготовить массив для frame_
     bool preparePictureArray();
 
-    //вывод данных, полученных во время инициализации
-    void initializationPrintData();
     void getTotalFrames();
     void findFirstKeyFrame();
     void makeQString();
