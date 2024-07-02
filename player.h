@@ -23,6 +23,8 @@ public:
 
     bool show_sei_ = 0;
 
+    void copyMass(bool[12]);
+
 public:
     explicit Player(std::string, QObject* parent = 0);
     ~Player();

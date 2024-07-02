@@ -39,11 +39,20 @@ RowLayout{
         text: "Save"
         enabled: false
         checkable: true
+        /*
+        background: Rectangle{
+            border.color: "#2d2d2d"
+            radius: button_radius
+            color: enabled? "#565656" : "#2d2d2d"
+
+        }*/
         palette.button: "#565656"
         palette.shadow: "#2d2d2d"
+        radius: button_radius
+
         palette.buttonText: "#d5cfcf"
         font.pointSize: 10
-        radius: button_radius
+
 
         Layout.preferredWidth: 40
         Layout.preferredHeight: 25
@@ -55,7 +64,8 @@ RowLayout{
             if (checked){
                 if (player_control.playing)
                     player_control.playback_button.clicked();
-                 popup_save.open()
+                popup_save.open()
+                palette.button = "green";
             }
             else {
                 if (saving){

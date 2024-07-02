@@ -52,6 +52,7 @@ public:
 
     void drawDataOnFrame();
     void drawCorners(QPainter *, int, int, int, int);
+    void selectDataToDraw(QPainter *);
 
     /**
    * @brief Reset before opening a new hevc file or after closing the main
@@ -61,7 +62,7 @@ public:
     void resetVideo();
 
     //return 1 when ok, 0 when EOF
-    bool play(bool);
+    bool play();
 
 private:
     //for initialization
@@ -78,6 +79,10 @@ private:
      */
     AVFrame *frame_;
     AVFrame *vFrameRGB_;
+
+    //для отрисовки
+    QString timeStr, latitude, longitude, altitude, yaw_ops,
+        pitch_ops, yaw_bla, pitch_bla, roll_bla, fov, dist;
 
 public:
     //packet_ - пакет с данными (недекодированый фрейм), полученными из av_read_frame
@@ -104,6 +109,8 @@ public:
      */
     Data_sei_str *sei_data_;
 
+    bool sei_options_[12] = {0};
+
 signals:
     void signalQImageReady(int, QImage);
 
@@ -118,6 +125,9 @@ private:
     void initializationPrintData();
     void getTotalFrames();
     void findFirstKeyFrame();
+    void makeQString();
+    void drawBackgroundRect(QPainter *);
+    void drawTracker(QPainter *);
 };
 
 #endif	  // HEVCQIMAGEENGINE_H

@@ -5,8 +5,6 @@
 #include <string>
 #include <unistd.h>
 
-#include <iostream>
-
 #define STREAM_TV 0
 
 Session::Session(QObject *parent) : QObject(parent)
@@ -38,7 +36,8 @@ void Session::open()
 
     player_ = new Player(open_file_path_);
     connect(player_->engine_player_, SIGNAL(signalQImageReady(int, QImage)), camera_, SLOT(slotChangeQImage(int, QImage)));
-    player_->engine_player_->play(player_->show_sei_);
+    player_->copyMass(sei_options_s_);
+    player_->engine_player_->play();
 
     emit totalFramesChanged(player_->engine_player_->total_frames_);
     emit currentFrameChanged(player_->player_current_frame_);
@@ -77,20 +76,18 @@ void Session::playThread()
     int flag = 1;
     while (playing_status_ == PLAYING_STATUS::PLAY)
     {
-        flag = player_->engine_player_->play(player_->show_sei_);
+        flag = player_->engine_player_->play();
 
         // 25 fps => 1 frame per 40000 microsecond
         std::this_thread::sleep_for(std::chrono::microseconds(40000));
         if (flag == 0)
         {
-            std::cout << "EOF" << std::endl;
             emit videoWasOver();
             break;
         }
 
         ++(player_->player_current_frame_);
 
-        std::cout << "Frame " << player_->player_current_frame_ << std::endl;
         emit currentFrameChanged(player_->player_current_frame_);
 
         if (nextFrameClicked)
@@ -128,6 +125,7 @@ void Session::changeFrameFromSlider(int target_frame)
         pauseButtonClicked();
         was_playing = true;
     }
+
     //=== костыль, иначе со слайдера не работает перемещение на 1й фрейм
     if (target_frame == 1)
     {
@@ -136,6 +134,7 @@ void Session::changeFrameFromSlider(int target_frame)
         prevFrameButtonClicked();
     }
     //===
+
     else
     {
         player_->setFrame(target_frame);
@@ -174,4 +173,11 @@ void Session::savingProcess(int pop)
 void Session::stopSaving()
 {
     video_output_->saving = false;
+}
+
+void Session::showSei2(int ind, bool flag)
+{
+    sei_options_s_[ind] = flag;
+    player_->copyMass(sei_options_s_);
+    //записываем всё в массив
 }

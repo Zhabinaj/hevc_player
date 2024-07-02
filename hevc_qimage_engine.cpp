@@ -237,7 +237,7 @@ bool HevcQImageEngine::getSei()
         return 0;
 }
 
-bool HevcQImageEngine::play(bool show_sei)
+bool HevcQImageEngine::play()	 //тут передаем массив сеи в плэй
 {
     if (readFrame())
         processingFrame();
@@ -247,15 +247,11 @@ bool HevcQImageEngine::play(bool show_sei)
         return 0;
     }
 
-    bool get_sei_flag;
-    if (show_sei)
-    {
-        get_sei_flag = getSei();	//вернет 1 если всё ок
-        if (get_sei_flag)
-            drawDataOnFrame();	  //отправляем в рисовашку
-        else
-            std::cout << "Error get sei" << std::endl;
-    }
+    bool get_sei_flag = getSei();
+    if (get_sei_flag)
+        drawDataOnFrame();	  //отправляем в рисовашку
+    else
+        std::cout << "Error get sei" << std::endl;
 
     emit signalQImageReady(id_stream_, q_img_);
     return 1;
@@ -263,26 +259,149 @@ bool HevcQImageEngine::play(bool show_sei)
 
 void HevcQImageEngine::drawDataOnFrame()
 {
+    QPainter paint(&q_img_);
+
+    makeQString();
+
+    drawBackgroundRect(&paint);
+
+    selectDataToDraw(&paint);
+}
+
+void HevcQImageEngine::makeQString()
+{
+
+    timeStr = QString("Таймштамп   : %1 ").arg(sei_data_->sys_time);
+    latitude =
+        QString("Широта      : ") + QString::number(sei_data_->latitude_bla, 'f', 8);
+    longitude = QString("Долгота     : ") +
+                QString::number(sei_data_->longitude_bla, 'f',
+                                8);
+    altitude = QString("Высота      : %1 ").arg(sei_data_->altitude_bla);
+    yaw_bla	 = QString("Курс БЛА    : ") + QString::number(sei_data_->yaw_bla, 'f', 2);
+    yaw_ops	 = QString("Курс OPS    : ") + QString::number(sei_data_->yaw, 'f', 2);
+    pitch_bla =
+        QString("Тангаж БЛА  : ") + QString::number(sei_data_->pitch_bla, 'f', 2);
+    pitch_ops = QString("Тангаж OPS  : ") + QString::number(sei_data_->pitch, 'f', 2);
+    roll_bla =
+        QString("Крен БЛА    : ") + QString::number(sei_data_->roll_bla, 'f', 2);
+    fov =
+        QString("Поле зрения : ") + QString::number(sei_data_->camera.fov_h, 'f', 2);
+    dist = QString("Дальность   : %1 ").arg(sei_data_->ld_distance);
+}
+
+void HevcQImageEngine::drawBackgroundRect(QPainter *p)
+{
+
+    //прогоняем массив и считаем сколько элементов надо отобразить. В зависимости от этого меняем длину прямоугольника
+    //до 11, вотому что для сопровождения прямугольник не нужен
+    int elements_in_rect = 0;
+
+    for (int i = 0; i < 11; ++i)
+    {
+        if (sei_options_[i])
+            ++elements_in_rect;
+    }
+
+    //для отрисовки 1 строки нужна высота 100 . За каждый доп элемент прибавляем +30
+    if (elements_in_rect != 0)
+    {
+        int rect_height = 20 + (elements_in_rect * 30);
+
+        QBrush background;
+        background.setColor(Qt::gray);
+        background.setStyle(Qt::Dense4Pattern);
+
+        p->setBrush(background);	  //задаем текущему qpainter нашу кисть
+        p->setPen(QPen(Qt::gray));	  //устанавливем текущую ручку серой
+        p->drawRect(10, 10, 320,
+                    rect_height);	 //функция рисует прямоугольник текущей кистью
+        //в начальных координатах 10,10
+        //шириной 300 высотой 400
+        // границы прямоугольника рисуются текущей ручкой
+
+        p->setPen(QPen(Qt::black));	   //переключаем цвет текущей ручки на черный
+        p->setFont(QFont("Courier", 15, QFont::Normal));
+    }
+}
+
+void HevcQImageEngine::selectDataToDraw(QPainter *p)
+{
+    //изменять динамически вторую координату
+    int y = 0;
+    for (int i = 0; i < 12; ++i)
+    {
+        if (sei_options_[i])
+        {
+            y += 30;
+            switch (i)
+            {
+                case 0:
+
+                    p->drawText(15, y, timeStr);
+                    break;
+                case 1:
+                    p->drawText(15, y, latitude);
+                    break;
+                case 2:
+                    p->drawText(15, y, longitude);
+                    break;
+                case 3:
+                    p->drawText(15, y, altitude);
+                    break;
+                case 4:
+                    p->drawText(15, y, yaw_bla);
+                    break;
+                case 5:
+                    p->drawText(15, y, yaw_ops);
+                    break;
+                case 6:
+                    p->drawText(15, y, pitch_bla);
+                    break;
+                case 7:
+                    p->drawText(15, y, pitch_ops);
+                    break;
+                case 8:
+                    p->drawText(15, y, roll_bla);
+                    break;
+                case 9:
+                    p->drawText(15, y, fov);
+                    break;
+                case 10:
+                    p->drawText(15, y, dist);
+                    break;
+                case 11:
+                    drawTracker(p);
+                    break;
+            }
+        }
+    }
+}
+
+void HevcQImageEngine::drawTracker(QPainter *p)
+{
     int dx = 0;
     int dy = 0;
-    QPainter paint(&q_img_);
+
     strob_struct *st;
 
     for (int i = 0; i < 5; i++)
     {
         st = sei_data_->strob + i;
+        //==swich case
         if (st->type == 0)
-            paint.setPen(QPen(QBrush(Qt::blue), 6));
+            p->setPen(QPen(QBrush(Qt::blue), 6));
         else if (st->type == 1)
-            paint.setPen(QPen(QBrush(Qt::green), 6));
+            p->setPen(QPen(QBrush(Qt::green), 6));
         else if (st->type == 2)
-            paint.setPen(QPen(QBrush(Qt::yellow), 6));
+            p->setPen(QPen(QBrush(Qt::yellow), 6));
         else if (st->type == 3)
-            paint.setPen(QPen(QBrush(Qt::cyan), 6));
+            p->setPen(QPen(QBrush(Qt::cyan), 6));
         else if (st->type == 4)
-            paint.setPen(QPen(QBrush(Qt::darkCyan), 6));
+            p->setPen(QPen(QBrush(Qt::darkCyan), 6));
         else
-            paint.setPen(QPen(QBrush(Qt::gray), 6));
+            p->setPen(QPen(QBrush(Qt::gray), 6));
+        //
 
         if (q_img_.width() == 1920 && q_img_.height() == 1080)
         {
@@ -303,59 +422,12 @@ void HevcQImageEngine::drawDataOnFrame()
             scale_y = (q_img_.height() / 768.0f);
         }
 
-        paint.drawRect(scale_x * (st->x + dx), scale_y * (st->y + dy),
-                       scale_x * (st->width), scale_x * (st->height));
+        p->drawRect(scale_x * (st->x + dx), scale_y * (st->y + dy),
+                    scale_x * (st->width), scale_x * (st->height));
 
         if (st->track == 1)
-            drawCorners(&paint, scale_x * (st->x + dx), scale_y * (st->y + dy),
+            drawCorners(p, scale_x * (st->x + dx), scale_y * (st->y + dy),
                         scale_x * (st->width), scale_y * (st->height));
-        QString timeStr, latitude, longitude, altitude, yaw_ops,
-            pitch_ops, yaw_bla, pitch_bla, roll_bla, fov, dist;
-
-        timeStr = QString("Таймштамп   : %1 ").arg(sei_data_->sys_time);
-        latitude =
-            QString("Широта      : ") + QString::number(sei_data_->latitude_bla, 'f', 8);
-        longitude = QString("Долгота     : ") +
-                    QString::number(sei_data_->longitude_bla, 'f',
-                                    8);
-        altitude = QString("Высота      : %1 ").arg(sei_data_->altitude_bla);
-        yaw_bla	 = QString("Курс БЛА    : ") + QString::number(sei_data_->yaw_bla, 'f', 2);
-        yaw_ops	 = QString("Курс OPS    : ") + QString::number(sei_data_->yaw, 'f', 2);
-        pitch_bla =
-            QString("Тангаж БЛА  : ") + QString::number(sei_data_->pitch_bla, 'f', 2);
-        pitch_ops = QString("Тангаж OPS  : ") + QString::number(sei_data_->pitch, 'f', 2);
-        roll_bla =
-            QString("Крен БЛА    : ") + QString::number(sei_data_->roll_bla, 'f', 2);
-        fov =
-            QString("Поле зрения : ") + QString::number(sei_data_->camera.fov_h, 'f', 2);
-        dist = QString("Дальность   : %1 ").arg(sei_data_->ld_distance);
-
-        QBrush background;
-        background.setColor(Qt::gray);
-        background.setStyle(Qt::Dense4Pattern);
-
-        paint.setBrush(background);		 //задаем текущему qpainter нашу кисть
-        paint.setPen(QPen(Qt::gray));	 //устанавливем текущую ручку серой
-        paint.drawRect(10, 10, 320,
-                       400);	//функция рисует прямоугольник текущей кистью
-        //в начальных координатах 10,10
-        //шириной 300 высотой 400
-        // границы прямоугольника рисуются текущей ручкой
-
-        paint.setPen(QPen(Qt::black));	  //переключаем цвет текущей ручки на черный
-
-        paint.setFont(QFont("Courier", 15, QFont::Normal));
-        paint.drawText(15, 30, timeStr);
-        paint.drawText(15, 60, latitude);
-        paint.drawText(15, 90, longitude);
-        paint.drawText(15, 120, altitude);
-        paint.drawText(15, 150, yaw_bla);
-        paint.drawText(15, 180, pitch_bla);
-        paint.drawText(15, 210, roll_bla);
-        paint.drawText(15, 240, yaw_ops);
-        paint.drawText(15, 270, pitch_ops);
-        paint.drawText(15, 300, dist);
-        paint.drawText(15, 330, fov);
     }
 }
 

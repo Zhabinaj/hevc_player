@@ -44,6 +44,8 @@ public:
 
     VideoOutput *video_output_ = nullptr;
 
+    bool sei_options_s_[12] = {0};
+
 signals:
     void videoWasOver();
     void totalFramesChanged(int total_frames_count);
@@ -74,6 +76,7 @@ public slots:
     void saveThread(QUrl, bool);
     void savingProcess(int pop);
     void stopSaving();
+    void showSei2(int, bool);
 };
 
 #endif	  // SESSION_H

@@ -40,6 +40,10 @@ void VideoOutput::saveVideo()
         engine_player_->processingFrame();
         if (save_SEI_)
         {
+            //врубаем все сеи
+            for (int i = 0; i < 12; ++i)
+                engine_player_->sei_options_[i] = 1;
+
             engine_player_->getSei();
             engine_player_->drawDataOnFrame();
         }

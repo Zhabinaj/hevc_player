@@ -66,7 +66,7 @@ RowLayout {
             //Frame slider becomes available
             player_control.frame_slider.enabled = true;
 
-            options.show_sei.enabled = true;
+            //options.show_sei.enabled = true;
             save_video.save_button.enabled = true;
 
             open_file.enabled = true;
@@ -128,7 +128,7 @@ RowLayout {
                 video_flow.reset();
                 player_control.reset();
                 save_video.reset();
-                options.reset();
+                //options.reset();
             }
             open_file.enabled = false;
 

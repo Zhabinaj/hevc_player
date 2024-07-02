@@ -12,6 +12,14 @@ Player::~Player()
     delete engine_player_;
 }
 
+void Player::copyMass(bool sei[12])
+{
+    for (int i = 0; i < 12; ++i)
+    {
+        engine_player_->sei_options_[i] = sei[i];
+    }
+}
+
 void Player::findClosestKeyFrame(int target)
 {
     if (target % 25 == 0)
@@ -49,6 +57,8 @@ void Player::setFrame(int target_frame)
         engine_player_->processingFrame();
         ++player_current_frame_;
     }
-    engine_player_->play(show_sei_);
+    //engine_player_->play(show_sei_);
+    engine_player_->play();
+
     ++player_current_frame_;
 }

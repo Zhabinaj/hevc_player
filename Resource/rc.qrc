@@ -10,5 +10,6 @@
         <file>qml/SaveVideo.qml</file>
         <file>qml/Options.qml</file>
         <file>ico/alt_icon.png</file>
+        <file>qml/CustomSwitch.qml</file>
     </qresource>
 </RCC>
