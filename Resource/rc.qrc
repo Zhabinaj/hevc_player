@@ -8,10 +8,11 @@
         <file>ico/icon.ico</file>
         <file>ico/icon.png</file>
         <file>qml/SaveVideo.qml</file>
-        <file>qml/Options.qml</file>
+        <file>qml/ShowSEI.qml</file>
         <file>ico/alt_icon.png</file>
         <file>qml/CustomSwitch.qml</file>
         <file>qml/CustomButton.qml</file>
         <file>qml/SeiToSaveWindow.qml</file>
+        <file>ico/alt_icon.ico</file>
     </qresource>
 </RCC>

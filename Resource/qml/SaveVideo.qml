@@ -8,7 +8,6 @@ RowLayout{
     property CustomButton save_button: save_button
     property Popup abort_saving: abort_saving
     property Popup popup_wait: popup_wait
-    property bool save_SEI: false
     property bool saving: false    
     property bool permission_to_open: true
     property string save_label_text: ""
@@ -59,6 +58,25 @@ RowLayout{
         }
     }
 
+    Label {
+        id: save_label
+        text: save_label_text
+
+        color: text_color
+        font.pointSize: 10
+        Layout.preferredWidth: 80
+        Layout.preferredHeight: 25
+        Layout.fillHeight: true
+        Layout.fillWidth: true
+
+        Layout.column: 1
+        Layout.row: 1
+        horizontalAlignment: Text.AlignHCenter
+        verticalAlignment: Text.AlignVCenter
+        transformOrigin: Item.Center
+        Layout.alignment: Qt.AlignCenter
+    }
+
     Popup {
         id: popup_wait
 
@@ -72,33 +90,14 @@ RowLayout{
             color: "black"
             opacity: 0.95
             Text{
-                anchors.centerIn: parent //выравнивание текста по центру
-                color: text_color         //цвет текста
+                anchors.centerIn: parent
+                color: text_color
                 text: "Please wait until the preparation \nfor saving is completed"
                 font.pixelSize: 25
             }
         }
         closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutsideParent
-    }
-
-    Label {
-        id: save_label
-        text: save_label_text
-        horizontalAlignment: Text.AlignHCenter
-        verticalAlignment: Text.AlignVCenter
-        transformOrigin: Item.Center
-
-        color: text_color
-
-        Layout.column: 1
-        Layout.row: 1
-        Layout.fillHeight: true
-        Layout.fillWidth: true
-        Layout.alignment: Qt.AlignCenter
-        Layout.preferredWidth: 80
-        Layout.preferredHeight: 25
-        font.pointSize: 10
-    }
+    }    
 
     Popup {
         id: abort_saving
@@ -117,13 +116,13 @@ RowLayout{
                 anchors.fill: parent
                 rows: 2
                 columns: 2
-                rowSpacing: 15 // пространство между строками
-                columnSpacing: 15 // пространство между столбцами
+                rowSpacing: 15
+                columnSpacing: 15
                 anchors.margins: 15
 
                 Text{
                     id: abort_saving_popup_text
-                    color: text_color //цвет текста
+                    color: text_color
 
                     text: "Do you want to complete \nsaving and open a new file?"
                     font.pixelSize: 20
@@ -159,8 +158,7 @@ RowLayout{
                     Layout.alignment: Qt.AlignHCenter
                     Layout.row: 1
                     Layout.column: 1
-                    onClicked: {
-                        abort_saving.close() }
+                    onClicked: abort_saving.close()
                 }
             }
         }
@@ -168,9 +166,10 @@ RowLayout{
     }
 
     FileDialog {
-        id: fileDialogResultPath
+        id: file_dialog_save
         title: "Please choose a folder to save video"
-        folder: open_video.last_open_folder //открывает директорию последнего открытого файла
+
+        folder: open_video.last_open_folder
         selectMultiple: false
         selectFolder: true
         modality: Qt.ApplicationModal
@@ -180,13 +179,13 @@ RowLayout{
             permission_to_open = false;
             save_button.enabled = false;
             save_label_text = "Preparing to save"
-            var path = fileDialogResultPath.fileUrl
-            session.saveThread(path, save_SEI)
-            fileDialogResultPath.close()
+            var path = file_dialog_save.fileUrl
+            session.saveThread(path)
+            file_dialog_save.close()
         }
         onRejected: {
             save_button.checked = false;
-            fileDialogResultPath.close();
+            file_dialog_save.close();
         }
     }
 }

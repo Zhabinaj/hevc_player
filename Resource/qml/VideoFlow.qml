@@ -3,7 +3,7 @@ import QtQuick.Layouts 1.3
 import QtQuick.Controls 2.15
 
 GridLayout {
-    property Image window_image: cameraImageVideo
+    property Image window_image: camera_image
     property string img: "image://camera/hevcTV"
     property string default_image: Qt.resolvedUrl("../Images/default.png")
 
@@ -15,13 +15,13 @@ GridLayout {
     Connections {
         target: CameraImage
         function onImageChangedHevcTV() {
-            cameraImageVideo.reload();
+            camera_image.reload();
         }
     }
 
     function reset(){
-        cameraImageVideo.source = "";
-        cameraImageVideo.source = default_image;
+        camera_image.source = "";
+        camera_image.source = default_image;
     }
 
     Rectangle {
@@ -30,7 +30,7 @@ GridLayout {
         Layout.fillWidth: true
 
         Image {
-            id: cameraImageVideo
+            id: camera_image
             anchors.fill: parent
             source: default_image
             function reload() {

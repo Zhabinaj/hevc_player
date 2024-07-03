@@ -145,12 +145,7 @@ void Session::changeFrameFromSlider(int target_frame)
         playButtonClicked();
 }
 
-void Session::showSei(bool checked)
-{
-    player_->show_sei_ = checked;
-}
-
-void Session::saveThread(QUrl url, bool save_SEI)
+void Session::saveThread(QUrl url)
 {
     std::string save_path = url.toLocalFile().toStdString();
     video_output_		  = new VideoOutput(save_path);
@@ -177,10 +172,11 @@ void Session::stopSaving()
     video_output_->saving = false;
 }
 
-void Session::showSei2(int ind, bool flag)
+void Session::seiToShow(int ind, bool flag)
 {
     sei_options_s_[ind] = flag;
-    player_->engine_player_->copyMass(sei_options_s_);
+    if (player_ != nullptr)
+        player_->engine_player_->copyMass(sei_options_s_);
     //записываем всё в массив
 }
 

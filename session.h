@@ -40,7 +40,7 @@ public:
 
     std::string open_file_path_;	//перевести в класс hevc_qimage_engine
 
-    Player *player_;
+    Player *player_ = nullptr;
 
     VideoOutput *video_output_ = nullptr;
 
@@ -66,18 +66,15 @@ public slots:
     //Используется при закрытии основного окна GUI и перед открытием нового файла clear all buffers
     void reset();
 
-    //переводим плеер в режим показа  sei
-    void showSei(bool checked);
-
     void playButtonClicked();	 //жмякаем кнопку плэй
     void pauseButtonClicked();
     void nextFrameButtonClicked();
     void prevFrameButtonClicked();
     void changeFrameFromSlider(int target_frame);
-    void saveThread(QUrl, bool);
+    void saveThread(QUrl);
     void savingProcess(int pop);
     void stopSaving();
-    void showSei2(int, bool);
+    void seiToShow(int, bool);
     void seiToSave(int, bool);
 };
 

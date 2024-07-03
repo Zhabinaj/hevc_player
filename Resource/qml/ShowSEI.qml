@@ -41,166 +41,118 @@ RowLayout{
                 rowSpacing: 20
                 anchors.centerIn: parent
 
-                //если выбран свич checked true - рисуем сеи, нажали и стало false - убрали
+                //checked true - draw sei
                 CustomSwitch{
                     id: switch_0
                     text:qsTr("Таймштамп")
+
                     Layout.column: 0
                     Layout.row: 0
-                    enabled: true
-                    checked: false
-
-                    onCheckedChanged: {
-                        session.showSei2(0,checked)
-                    }
+                    onCheckedChanged: session.seiToShow(0,checked)
                 }
 
                 CustomSwitch{
                     id: switch_1
                     text:qsTr("Широта")
+
                     Layout.column: 0
                     Layout.row: 1
-                    enabled: true
-                    checked: false
-
-                    onCheckedChanged: {
-                        session.showSei2(1,checked)
-                    }
+                    onCheckedChanged: session.seiToShow(1,checked)
                 }
 
                 CustomSwitch{
                     id: switch_2
                     text:qsTr("Долгота")
+
                     Layout.column: 0
                     Layout.row: 2
-                    enabled: true
-                    checked: false
-
-                    onCheckedChanged: {
-                        session.showSei2(2,checked)
-                    }
+                    onCheckedChanged: session.seiToShow(2,checked)
                 }
 
                 CustomSwitch{
                     id: switch_3
                     text:qsTr("Высота")
+
                     Layout.column: 0
                     Layout.row: 3
-                    enabled: true
-                    checked: false
-
-                    onCheckedChanged: {
-                        session.showSei2(3,checked)
-                    }
+                    onCheckedChanged: session.seiToShow(3,checked)
                 }
 
                 CustomSwitch{
                     id: switch_4
                     text:qsTr("Курс БЛА")
+
                     Layout.column: 0
                     Layout.row: 4
-                    enabled: true
-                    checked: false
-
-                    onCheckedChanged: {
-                        session.showSei2(4,checked)
-                    }
+                    onCheckedChanged: session.seiToShow(4,checked)
                 }
 
                 CustomSwitch{
                     id: switch_5
                     text:qsTr("Курс OPS")
+
                     Layout.column: 0
                     Layout.row: 5
-                    enabled: true
-                    checked: false
-
-                    onCheckedChanged: {
-                       session.showSei2(5,checked)
-                    }
+                    onCheckedChanged: session.seiToShow(5,checked)
                 }
 
                 CustomSwitch{
                     id: switch_6
                     text:qsTr("Тангаж БЛА")
+
                     Layout.column: 1
                     Layout.row: 0
-                    enabled: true
-                    checked: false
-
-                    onCheckedChanged: {
-                        session.showSei2(6,checked)
-                    }
+                    onCheckedChanged: session.seiToShow(6,checked)
                 }
 
                 CustomSwitch{
                     id: switch_7
                     text:qsTr("Тангаж OPS")
+
                     Layout.column: 1
                     Layout.row: 1
-                    enabled: true
-                    checked: false
-
-                    onCheckedChanged: {
-                        session.showSei2(7,checked)
-                    }
+                    onCheckedChanged: session.seiToShow(7,checked)
                 }
 
                 CustomSwitch{
                     id: switch_8
                     text:qsTr("Крен БЛА")
+
                     Layout.column: 1
                     Layout.row: 2
-                    enabled: true
-                    checked: false
-
-                    onCheckedChanged: {
-                        session.showSei2(8,checked)
-                    }
+                    onCheckedChanged: session.seiToShow(8,checked)
                 }
 
                 CustomSwitch{
                     id: switch_9
                     text:qsTr("Поле зрения")
+
                     Layout.column: 1
                     Layout.row: 3
-                    enabled: true
-                    checked: false
-
-                    onCheckedChanged: {
-                        session.showSei2(9,checked)
-                    }
+                    onCheckedChanged: session.seiToShow(9,checked)
                 }
 
                 CustomSwitch{
                     id: switch_10
                     text:qsTr("Дальность")
+
                     Layout.column: 1
                     Layout.row: 4
-                    enabled: true
-                    checked: false
-
-                    onCheckedChanged: {
-                        session.showSei2(10,checked)
-                    }
+                    onCheckedChanged: session.seiToShow(10,checked)
                 }
 
                 CustomSwitch{
                     id: switch_11
                     text:qsTr("Сопровождение")
+
                     Layout.column: 1
                     Layout.row: 5
-                    enabled: true
-                    checked: false
-
-                    onCheckedChanged: {
-                        session.showSei2(11,checked)
-                    }
+                    onCheckedChanged: session.seiToShow(11,checked)
                 }                
             }
         }
 
-        //QT ругается, но это работает. Community Service QT говорит это ОК
+        //QT Creator markered this as "Invalid property", but it works. Community Service QT says its ОК
         onClosing:{
             show_sei.enabled = true;
         }

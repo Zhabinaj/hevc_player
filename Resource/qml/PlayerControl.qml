@@ -9,11 +9,9 @@ RowLayout {
     property Slider frame_slider: frame_slider
     property Label total_frames_label: total_frames_label
     property Label current_frame_label: current_frame_label
-
     property string play: qsTr("▶")
     property string pause: qsTr("||")
-
-    property bool playing: false //true когда петля работает
+    property bool playing: false
 
     Layout.leftMargin: 15
 
@@ -26,13 +24,12 @@ RowLayout {
         }
 
         function onCurrentFrameChanged(current_frame_) {
-            // if slider is not holding then change label and slider info
+            // if slider is not holding - change label and slider info
             if (!frame_slider.pressed){
-                // change slider and label of current frame
                 current_frame_label.changeLabelText(current_frame_);
                 frame_slider.value = current_frame_;
             }
-            if (current_frame_<=1   )
+            if (current_frame_<=1)
                 prev_frame_button.enabled = false;
             else if (player_control.playing == false)
                 prev_frame_button.enabled = true;
@@ -40,13 +37,12 @@ RowLayout {
                 next_frame_button.enabled = false;
             else if (player_control.playing == false)
                 next_frame_button.enabled = true;
-
         }
 
         function onVideoWasOver(){
             if (player_control.playing)
                 player_control.playback_button.clicked();
-		player_control.next_frame_button.enabled = false;
+            player_control.next_frame_button.enabled = false;
         }
     }
 
@@ -68,10 +64,7 @@ RowLayout {
         Layout.fillHeight: true
         Layout.column: 1
         Layout.row: 0
-        onClicked: {
-            player_control.next_frame_button.enabled = true;
-            session.prevFrameButtonClicked()
-        }
+        onClicked: session.prevFrameButtonClicked()
     }
 
     CustomButton {
@@ -83,32 +76,28 @@ RowLayout {
         Layout.column: 2
         Layout.row: 0
         onClicked: {
-            // pressed play button
+            // pressed "PLAY", video is playing
             if (!player_control.playing)
             {
-                // change player status of playing (is playing)
+                // change status of playing
                 player_control.playing = true
 
-                // Видео воспроизводится, а на кнопке отображается команда "PAUSE"
+                // button changes appearance to "PAUSE"
                 player_control.playback_button.text = player_control.pause
 
-                // Когда видео воспроизводится, то нельзя переключать фреймы
                 player_control.next_frame_button.enabled = false
                 player_control.prev_frame_button.enabled = false
 
-                // Запустить обработку кадров
                 session.playButtonClicked()
             }
-            // pressed pause button
+            // pressed "PAUSE"
             else
             {
-                // change player status of playing (is stopping)
                 player_control.playing = false
 
-                // Видео ставится на паузу, а на кнопке отображается команда "PLAY"
+                // button changes appearance to "PLAY"
                 player_control.playback_button.text = player_control.play
 
-                // Переключать фреймы можно только когда видео стоит на паузе
                 player_control.next_frame_button.enabled = true
                 player_control.prev_frame_button.enabled = true
 
@@ -119,13 +108,13 @@ RowLayout {
 
     CustomButton {
         id: next_frame_button        
-        text: ">"
+        text: qsTr(">")
 
         enabled: false
         Layout.fillHeight: true
         Layout.column: 3
         Layout.row: 0
-        onClicked: { session.nextFrameButtonClicked(); }
+        onClicked: session.nextFrameButtonClicked();
     }
 
     Label {
@@ -152,6 +141,8 @@ RowLayout {
         }        
     }
 
+
+
     Slider {
         id: frame_slider
         enabled: false
@@ -164,7 +155,7 @@ RowLayout {
         Layout.fillWidth: true
         Layout.alignment: Qt.AlignCenter
 
-        Layout.preferredHeight: 25 //высота расположения слайдера
+        Layout.preferredHeight: 25 //Height of progress bar
 
         function setDefault() {
             frame_slider.value = 0.0;
@@ -174,11 +165,13 @@ RowLayout {
             frame_slider.from = 1;
             frame_slider.to = frame;
         }
-            // when user change current frame
+
+        //user hold and move slider
         onMoved: {
             current_frame_label.changeLabelText(frame_slider.value);
         }
 
+        //user releases slider
         onPressedChanged: {
             if (!frame_slider.pressed)
             {

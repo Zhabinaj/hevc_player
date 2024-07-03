@@ -17,9 +17,9 @@ int main(int argc, char *argv[])
     app.setOrganizationDomain("339");
 
     if (QDateTime::currentDateTime().date().dayOfWeek() == Qt::Wednesday)
-        app.setWindowIcon(QIcon(":/ico/alt_icon.png"));
+        app.setWindowIcon(QIcon(":/ico/alt_icon.png"));	   //alt_icon.ico for windows
     else
-        app.setWindowIcon(QIcon(":/ico/icon.png"));
+        app.setWindowIcon(QIcon(":/ico/icon.png"));	   //icon.ico for windows
 
     Session session;
 

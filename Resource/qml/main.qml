@@ -16,19 +16,18 @@ ApplicationWindow {
     minimumWidth: 1024
     minimumHeight: 768
 
-    onClosing:{
-        session.reset();
-    }
+    onClosing: session.reset()
 
     GridLayout {
         id: window_grid
+
         anchors.fill: parent
         columns: 4
         rows: 3
         anchors.margins: 10
         RowLayout
         {
-            anchors.fill: parent //QML ругается в терминал, но без этого сыпется ресайз окна
+            anchors.fill: parent //QML sends warnings in terminal, but without this resizing the main window does not work correctly
             Layout.maximumHeight: 40
             OpenVideo {
                 id: open_video
@@ -42,8 +41,8 @@ ApplicationWindow {
                 Layout.row: 0
             }
 
-            Options{
-                id: options
+            ShowSEI{
+                id: show_SEI
                 Layout.column: 2
                 Layout.row: 0
             }
