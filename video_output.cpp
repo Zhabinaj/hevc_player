@@ -41,7 +41,7 @@ void VideoOutput::saveVideo()
 {
     saving = true;
 
-    avio_seek(engine_player_->formatContext->pb, 0, SEEK_SET);
+    avio_seek(engine_player_->format_context_->pb, 0, SEEK_SET);
 
     for (int i = engine_player_->first_keyframe_; i < engine_player_->total_frames_; ++i)
     {
@@ -50,7 +50,7 @@ void VideoOutput::saveVideo()
         if (saveSei())
         {
             engine_player_->getSei();
-            engine_player_->drawDataOnFrame();
+            engine_player_->drawDataOnQImage();
         }
 
         if (i == engine_player_->first_keyframe_)

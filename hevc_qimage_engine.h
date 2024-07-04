@@ -18,9 +18,8 @@ extern "C"
 }
 
 /**
- * @brief The HevcQImageEngine class for opening, initialization, decoding and painting .hevc file
+ * @brief The HevcQImageEngine is base class for opening, initialization, decoding .hevc file and painting on QImage
  */
-
 class HevcQImageEngine : public QObject
 {
     Q_OBJECT
@@ -30,70 +29,105 @@ public:
     ~HevcQImageEngine();
 
     /**
-    * @brief Opening, setting, preparation for further decoding, getting
+    * @brief Opening .hevc file, setting, preparation for further decoding, getting
     * additional data such a Total Frames, FPS, Duration
     *
-    * @param path path to chosen hevc file
+    * @param path to chosen hevc file
     *
-    * @return zero on success, from -1 to -5 on failure
+    * @return return 1 on success, from -1 to -5 on failure
     */
     int initialization(std::string);
 
-    //вытягиваем по 1 фрейму за раз
-    //возвращ 0 когда достигнуть конец файла
+    /**
+     * @brief initializationPrintData outputs additional metadata in terminal afther initialization
+     */
+    void initializationPrintData();
+
+    /**
+     * @brief readFrame is getting one packet_ of raw data from current .hevc file for each call
+     *
+     * @return return 1 on success, 0 on error or end of file
+     */
     bool readFrame();
 
-    //вернет 1 если создан QImage, 0 если не удалось
-    bool processingFrame();	   //private?
+    /**
+     * @brief processingFrame decodes and convert the packet_ to QImage
+     *
+     * @return return 1 if QImage was create and write, 0 on error
+     */
+    bool processingFrame();
 
-    //получаем sei из фрейма и записываем в ту структуру, которая передается через параметры
-    //вернет 1 если всё ок
-    bool getSei();	  //private?
+    /**
+     * @brief getSei get SEI from frame_ and write it to sei_data_
+     *
+     * @return return 1 on success, 0 if there is no SEI data in the frame_ or it is of the wrong type
+     */
+    bool getSei();
 
-    void drawDataOnFrame();
+    /**
+     * @brief play function manage process from get one raw packet_
+     * to emit signal to image_provider that QImage is painted
+     *
+     * @return return 1 on success, 0 if End of File
+     */
+    bool play();
+
+    /**
+     * @brief drawDataOnQImage draw SEI on QImage
+     */
+    void drawDataOnQImage();
+
+    /**
+     * @brief copyMass is copies the array to sei_options_
+     *
+     * @param param is boolean array
+     */
+    void copyMass(bool[12]);
+
+    /**
+     * @brief Free data before opening a new .hevc file or after closing the main
+     * window of GUI
+     */
+    void resetVideo();
+
+private:
+    /**
+     * @brief setCodecCtx find decoder, create and set parameters to codec context
+     * @return return 1 on success, from -1 to -5 on failure
+     */
+    int setCodecCtx();
+
+    /**
+     * @brief preparePictureArray prepares arrays for storing frame_ and v_frame_rgb_
+     * @return return 1 on success, 0 if failed to prepare array for frame
+     */
+    bool preparePictureArray();
+
+    /**
+     * @brief getTotalFrames is counting all packets in .hevc file to calculate total frames of video
+     */
+    void getTotalFrames();
+
+    /**
+     * @brief findFirstKeyFrame looks for the last of a sequence of key frames at the beginning of a video,
+     * followed by a non-key
+     */
+    void findFirstKeyFrame();
+
+    void makeQString();
+    void drawBackgroundRect(QPainter *);
+    void drawTracker(QPainter *);
     void drawCorners(QPainter *, int, int, int, int);
     void selectDataToDraw(QPainter *);
 
-    /**
-   * @brief Reset before opening a new hevc file or after closing the main
-   * window of GUI
-   *
-   */
-    void resetVideo();
-
-    //return 1 when ok, 0 when EOF
-    bool play();
-
-    //вывод данных, полученных во время инициализации
-    void initializationPrintData();
-
-    void copyMass(bool[12]);
-
-private:
-    //for initialization
-
-    //для инициализации и декодирования
-    AVCodecContext *vCodecCtx;				   //кодек
-    struct SwsContext *img_convert_context;	   //private
-    uint8_t *vbuffer_;
-
-    /**
-     * packet_ is current frame of stream before decoding
-     * frame_ is packet_ after decoding, native fromat
-     * vFrameRGB_ is frame_ after convert to RGB
-     */
-    AVFrame *frame_;
-    AVFrame *vFrameRGB_;
-
-    //для отрисовки
-    QString timeStr, latitude, longitude, altitude, yaw_ops,
-        pitch_ops, yaw_bla, pitch_bla, roll_bla, fov, dist;
+signals:
+    void signalQImageReady(int, QImage);
 
 public:
     //packet_ - пакет с данными (недекодированый фрейм), полученными из av_read_frame
     AVPacket packet_;
     /**
-     * q_img_ one image for Image Provider, built from a given vFrameRGB_
+     * q_img_ one image for Image Provider, built from a given v_frame_rgb_
      */
     QImage q_img_;
 
@@ -103,12 +137,22 @@ public:
     int total_frames_ = 0;
 
     //для инициалищации и декодирования
-    AVFormatContext *formatContext;	   //public
+    AVFormatContext *format_context_;	 //public
 
     //Additional metadata
     int fps_;						//may use for save?
     std::string open_file_name_;	//Имя открытого HEVC файла
+
+    /**
+     * @brief first_keyframe_
+     * In some .hevc video file first frame is keyframe, next 24 (or fps-1) is based on keyframe.
+     * In other .hevc video file keyframe may be first AND second AND third and so on.
+     *
+     * In case of playing (watching video) number of first keyframe is not important,
+     * but in case of saving video wrong number of first keyframe may lead to incorrect operation of video saving
+     */
     int first_keyframe_;
+
     /**
      * sei_data_ struct for storage of Supplemental Enhancement Information (SEI), received from each frame
      */
@@ -116,21 +160,25 @@ public:
 
     bool sei_options_[12] = {0};
 
-signals:
-    void signalQImageReady(int, QImage);
-
 private:
-    //вернет 1 если всё ок, от -1 до -5 если ошибка
-    int setCodecCtx();
-    // подготавливем массивы для хранения изображения frame_ и vFrameRGB_
-    // вернет 0 если не удалось подготовить массив для frame_
-    bool preparePictureArray();
+    //for initialization
 
-    void getTotalFrames();
-    void findFirstKeyFrame();
-    void makeQString();
-    void drawBackgroundRect(QPainter *);
-    void drawTracker(QPainter *);
+    //для инициализации и декодирования
+    AVCodecContext *v_codec_ctx_;	 //кодек
+    struct SwsContext *img_convert_context_;
+    uint8_t *v_buffer_;
+
+    /**
+     * packet_ is current frame of stream before decoding
+     * frame_ is packet_ after decoding, native fromat
+     * v_frame_rgb_ is frame_ after convert to RGB
+     */
+    AVFrame *frame_;
+    AVFrame *v_frame_rgb_;
+
+    //для отрисовки
+    QString timeStr_, latitude_, longitude_, altitude_, yaw_ops_,
+        pitch_ops_, yaw_bla_, pitch_bla_, roll_bla_, fov_, dist_;
 };
 
-#endif	  // HEVCQIMAGEENGINE_H
+#endif

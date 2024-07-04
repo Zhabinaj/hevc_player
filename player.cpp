@@ -32,7 +32,7 @@ void Player::setFrame(int target_frame)
 
     if (target_frame < player_current_frame_)
     {
-        avio_seek(engine_player_->formatContext->pb, 0, SEEK_SET);
+        avio_seek(engine_player_->format_context_->pb, 0, SEEK_SET);
         player_current_frame_ = 0;	  //счетчик переключится ПОСЛЕ обработки и выплевывания фрейма
     }
     if (closest_key_frame != 1)
