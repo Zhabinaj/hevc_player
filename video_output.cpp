@@ -1,6 +1,6 @@
 #include "video_output.h"
 
-#include <filesystem>
+#include <boost/filesystem.hpp>
 #include <iostream>
 
 #define SAVE_COMPLETED 100
@@ -282,13 +282,28 @@ std::string VideoOutput::makeOutputURL()
     }
     reverse(video_name.begin(), video_name.end());
 
-    auto temp_name	  = save_file_path_ + std::filesystem::path::preferred_separator + video_name + "_saved_" + ".avi";
+    std::string temp_name;
     int existed_names = 0;
-    while (std::filesystem::exists(temp_name))
+
+#ifdef WINDOWS
+    temp_name = save_file_path_ + '\\' + video_name + "_saved_" + ".avi";
+
+    while (boost::filesystem::exists(temp_name))
     {
-        temp_name = save_file_path_ + std::filesystem::path::preferred_separator + video_name + "_saved_" + std::to_string(existed_names) + ".avi";
+        temp_name = save_file_path_ + '\\' + video_name + "_saved_" + std::to_string(existed_names) + ".avi";
         existed_names++;
     };
+
+#elif linux
+    temp_name = save_file_path_ + boost::filesystem::path::preferred_separator + video_name + "_saved_" + ".avi";
+
+    while (boost::filesystem::exists(temp_name))
+    {
+        temp_name = save_file_path_ + boost::filesystem::path::preferred_separator + video_name + "_saved_" + std::to_string(existed_names) + ".avi";
+        existed_names++;
+    };
+#endif
+
     return temp_name;
 }
 

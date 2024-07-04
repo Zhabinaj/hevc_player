@@ -18,7 +18,7 @@ extern "C"
 }
 
 /**
- * @brief The HevcQImageEngine is base class for opening, initialization, decoding .hevc file and painting on QImage
+ * @class The HevcQImageEngine is base class for opening, initialization, decoding .hevc file and painting on QImage
  */
 class HevcQImageEngine : public QObject
 {
@@ -114,34 +114,84 @@ private:
      */
     void findFirstKeyFrame();
 
+    /**
+     * @brief makeQString creates QStrings with data from sei_data_ for further painting
+     */
     void makeQString();
+
+    /**
+     * @brief drawBackgroundRect calculates the size of the rectangle that is drawn behind the SEI QStrings and draw it
+     *
+     * @param is current QPainter for all draw stuff
+     */
     void drawBackgroundRect(QPainter *);
+
+    /**
+     * @brief drawTracker creates rectangle of tracker for further painting
+     *
+     * @param is current QPainter for all draw stuff
+     */
     void drawTracker(QPainter *);
+
+    /**
+     * @brief drawCorners creates corners of rectangle of tracker for further painting
+     *
+     * @param QPainter is current QPainter for all draw stuff, all int parameters is coordinates for corners
+     */
     void drawCorners(QPainter *, int, int, int, int);
+
+    /**
+     * @brief selectDataToDraw draw prepared SEI data (QStrings and tracker rectangle)
+     *
+     * @param is current QPainter for all draw stuff
+     */
     void selectDataToDraw(QPainter *);
 
 signals:
+    /**
+     * @brief signalQImageReady singal from @see bool HevcQImageEngine::play() that QImage ready to displayed in player
+     */
     void signalQImageReady(int, QImage);
 
 public:
     //packet_ - пакет с данными (недекодированый фрейм), полученными из av_read_frame
-    AVPacket packet_;
+
     /**
-     * q_img_ one image for Image Provider, built from a given v_frame_rgb_
+     * @brief packet_ is a one part of raw data from current .hevc file
+     */
+    AVPacket packet_;
+
+    /**
+     * @brief q_img_ one image for Image Provider, built from a given v_frame_rgb_
      */
     QImage q_img_;
 
+    /**
+     * @brief id_stream_ current stream number. 0 if there only one stream
+     */
     int id_stream_;
 
-    //total_frames_ is a total number of frames in current .hevc video file
+    /**
+     * @brief total_frames_ is a total number of frames in current .hevc file
+     */
     int total_frames_ = 0;
 
-    //для инициалищации и декодирования
-    AVFormatContext *format_context_;	 //public
+    /**
+     * @brief format_context_ is a Format I/O context. This is where the work with ffmpeg begins
+     */
+    AVFormatContext *format_context_;
 
     //Additional metadata
-    int fps_;						//may use for save?
-    std::string open_file_name_;	//Имя открытого HEVC файла
+
+    /**
+     * @brief fps_ of current .hevc file
+     */
+    int fps_;
+
+    /**
+     * @brief open_file_name_ is path and name your opened .hevc file
+     */
+    std::string open_file_name_;
 
     /**
      * @brief first_keyframe_
@@ -158,25 +208,30 @@ public:
      */
     Data_sei_str *sei_data_;
 
+    /**
+     * @brief sei_options_ each index refers to specific metadata: [0] for timeStr, [1] for latitude_ and so on.
+     * Flag 1 - draw data, 0 - not to draw. By defaulf all 0.
+     */
     bool sei_options_[12] = {0};
 
 private:
-    //for initialization
-
-    //для инициализации и декодирования
-    AVCodecContext *v_codec_ctx_;	 //кодек
+    AVCodecContext *v_codec_ctx_;
     struct SwsContext *img_convert_context_;
     uint8_t *v_buffer_;
 
     /**
-     * packet_ is current frame of stream before decoding
-     * frame_ is packet_ after decoding, native fromat
-     * v_frame_rgb_ is frame_ after convert to RGB
+     * @brief frame_ is packet_ after decoding, native fromat
      */
     AVFrame *frame_;
+
+    /**
+     * @brief v_frame_rgb_ is frame_ after convert to RGB
+     */
     AVFrame *v_frame_rgb_;
 
-    //для отрисовки
+    /**
+     * @brief QStrings is SEI data, prepared to draw on QImage
+     */
     QString timeStr_, latitude_, longitude_, altitude_, yaw_ops_,
         pitch_ops_, yaw_bla_, pitch_bla_, roll_bla_, fov_, dist_;
 };

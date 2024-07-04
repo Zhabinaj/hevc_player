@@ -251,7 +251,6 @@ void HevcQImageEngine::findFirstKeyFrame()
 
 void HevcQImageEngine::makeQString()
 {
-
     timeStr_ = QString("Таймштамп   : %1 ").arg(sei_data_->sys_time);
     latitude_ =
         QString("Широта      : ") + QString::number(sei_data_->latitude_bla, 'f', 8);
@@ -273,87 +272,39 @@ void HevcQImageEngine::makeQString()
 
 void HevcQImageEngine::drawBackgroundRect(QPainter *p)
 {
-    //прогоняем массив и считаем сколько элементов надо отобразить. В зависимости от этого меняем длину прямоугольника
-    //до 11, вотому что для сопровождения прямугольник не нужен
     int elements_in_rect = 0;
 
+    //<11 because 12 is tracker and this data is not displayed through QString
     for (int i = 0; i < 11; ++i)
     {
         if (sei_options_[i])
             ++elements_in_rect;
     }
 
-    //для отрисовки 1 строки нужна высота 100 . За каждый доп элемент прибавляем +30
     if (elements_in_rect != 0)
     {
+        //Height depends on how many SEI data (QStrings) you need to draw on current QImage. Add +30 for each QString
         int rect_height = 20 + (elements_in_rect * 30);
 
+#ifdef WINDOWS
+        int rect_width = 400;
+#elif linux
+        int rect_width = 320;
+#endif
         QBrush background;
         background.setColor(Qt::gray);
         background.setStyle(Qt::Dense4Pattern);
+        p->setBrush(background);
 
-        p->setBrush(background);	  //задаем текущему qpainter нашу кисть
-        p->setPen(QPen(Qt::gray));	  //устанавливем текущую ручку серой
-        p->drawRect(10, 10, 320,
-                    rect_height);	 //функция рисует прямоугольник текущей кистью
-        //в начальных координатах 10,10
-        //шириной 300 высотой 400
-        // границы прямоугольника рисуются текущей ручкой
+        //the borders of the rectangle are drawn with the current pen
+        p->setPen(QPen(Qt::gray));
 
-        p->setPen(QPen(Qt::black));	   //переключаем цвет текущей ручки на черный
+        //10 10 is coordinates of the beginning of the rectangle
+        p->drawRect(10, 10, rect_width, rect_height);
+
+        //change the color of the pen so that the text does not merge with the color of the rectangle
+        p->setPen(QPen(Qt::black));
         p->setFont(QFont("Courier", 15, QFont::Normal));
-    }
-}
-
-void HevcQImageEngine::selectDataToDraw(QPainter *p)
-{
-    int y = 0;
-    for (int i = 0; i < 12; ++i)
-    {
-        if (sei_options_[i])
-        {
-            y += 30;
-            switch (i)
-            {
-                case 0:
-
-                    p->drawText(15, y, timeStr_);
-                    break;
-                case 1:
-                    p->drawText(15, y, latitude_);
-                    break;
-                case 2:
-                    p->drawText(15, y, longitude_);
-                    break;
-                case 3:
-                    p->drawText(15, y, altitude_);
-                    break;
-                case 4:
-                    p->drawText(15, y, yaw_bla_);
-                    break;
-                case 5:
-                    p->drawText(15, y, yaw_ops_);
-                    break;
-                case 6:
-                    p->drawText(15, y, pitch_bla_);
-                    break;
-                case 7:
-                    p->drawText(15, y, pitch_ops_);
-                    break;
-                case 8:
-                    p->drawText(15, y, roll_bla_);
-                    break;
-                case 9:
-                    p->drawText(15, y, fov_);
-                    break;
-                case 10:
-                    p->drawText(15, y, dist_);
-                    break;
-                case 11:
-                    drawTracker(p);
-                    break;
-            }
-        }
     }
 }
 
@@ -361,13 +312,11 @@ void HevcQImageEngine::drawTracker(QPainter *p)
 {
     int dx = 0;
     int dy = 0;
-
     strob_struct *st;
 
     for (int i = 0; i < 5; i++)
     {
         st = sei_data_->strob + i;
-        //==swich case
         if (st->type == 0)
             p->setPen(QPen(QBrush(Qt::blue), 6));
         else if (st->type == 1)
@@ -380,7 +329,6 @@ void HevcQImageEngine::drawTracker(QPainter *p)
             p->setPen(QPen(QBrush(Qt::darkCyan), 6));
         else
             p->setPen(QPen(QBrush(Qt::gray), 6));
-        //
 
         if (q_img_.width() == 1920 && q_img_.height() == 1080)
         {
@@ -428,6 +376,57 @@ void HevcQImageEngine::drawCorners(QPainter *p, int x, int y, int w, int h)
     p->drawLine(x1, y2, x1 + dw, y2);
     p->drawLine(x2, y2, x2, y2 - dh);
     p->drawLine(x2, y2, x2 - dw, y2);
+}
+
+void HevcQImageEngine::selectDataToDraw(QPainter *p)
+{
+    int y = 0;
+    for (int i = 0; i < 12; ++i)
+    {
+        if (sei_options_[i])
+        {
+            y += 30;
+            switch (i)
+            {
+                case 0:
+                    p->drawText(15, y, timeStr_);
+                    break;
+                case 1:
+                    p->drawText(15, y, latitude_);
+                    break;
+                case 2:
+                    p->drawText(15, y, longitude_);
+                    break;
+                case 3:
+                    p->drawText(15, y, altitude_);
+                    break;
+                case 4:
+                    p->drawText(15, y, yaw_bla_);
+                    break;
+                case 5:
+                    p->drawText(15, y, yaw_ops_);
+                    break;
+                case 6:
+                    p->drawText(15, y, pitch_bla_);
+                    break;
+                case 7:
+                    p->drawText(15, y, pitch_ops_);
+                    break;
+                case 8:
+                    p->drawText(15, y, roll_bla_);
+                    break;
+                case 9:
+                    p->drawText(15, y, fov_);
+                    break;
+                case 10:
+                    p->drawText(15, y, dist_);
+                    break;
+                case 11:
+                    drawTracker(p);
+                    break;
+            }
+        }
+    }
 }
 
 void HevcQImageEngine::resetVideo()
