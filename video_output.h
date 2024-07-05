@@ -60,8 +60,16 @@ public:
    */
     void saveVideo();
 
+    /**
+     * @brief initializeOutputStream
+     * @return
+     */
     bool initializeOutputStream();
 
+    /**
+     * @brief makeOutputURL
+     * @return
+     */
     std::string makeOutputURL();
 
     void AddStream();	 //переименовать в addStream;
