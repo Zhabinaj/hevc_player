@@ -28,7 +28,7 @@ RowLayout{
         minimumWidth: 450
         maximumWidth: 450
 
-        flags: Qt.CustomizeWindowHint | Qt.WindowTitleHint | Qt.WindowCloseButtonHint
+        flags: Qt.WindowCloseButtonHint | Qt.CustomizeWindowHint | Qt.Dialog | Qt.WindowTitleHint
 
         Rectangle {
             width: parent.width

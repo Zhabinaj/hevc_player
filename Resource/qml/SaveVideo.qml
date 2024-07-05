@@ -20,7 +20,7 @@ RowLayout{
             save_button.enabled = true;
             if (percent == 100){
                 save_label_text =  qsTr("Save completed");
-                save.checked = false;
+                save_button.checked = false;
                 saving = false;
             }
             else
