@@ -9,21 +9,21 @@
 ImageProvider::ImageProvider(QObject *parent)
 : QObject(parent), QQuickImageProvider(QQuickImageProvider::Image)
 {
-    img = QImage(WINDOW_FRAME_W, WINDOW_FRAME_H, QImage::Format_RGB888);
-    img.fill(0);
-    hevcTV = QImage(WINDOW_FRAME_W, WINDOW_FRAME_H, QImage::Format_RGB888);
+    img_ = QImage(WINDOW_FRAME_W, WINDOW_FRAME_H, QImage::Format_RGB888);
+    img_.fill(0);
+    hevc_tv_ = QImage(WINDOW_FRAME_W, WINDOW_FRAME_H, QImage::Format_RGB888);
 }
 
 QImage ImageProvider::requestImage(const QString &id, QSize *, const QSize &)
 {
-    return hevcTV;
+    return hevc_tv_;
 }
 
 void ImageProvider::slotChangeQImage(int id, QImage img)
 {
     if (id == 0)
     {
-        hevcTV = img.copy();
+        hevc_tv_ = img.copy();
         emit imageChangedHevcTV();
     }
 }

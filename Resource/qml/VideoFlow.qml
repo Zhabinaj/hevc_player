@@ -4,7 +4,7 @@ import QtQuick.Controls 2.15
 
 GridLayout {
     property Image window_image: camera_image
-    property string img: "image://camera/hevcTV"
+    property string img: "image://camera/hevc_tv_"
     property string default_image: Qt.resolvedUrl("../Images/default.png")
 
     Layout.leftMargin: 10

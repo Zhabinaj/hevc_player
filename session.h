@@ -39,6 +39,7 @@ public:
     ImageProvider *camera_;
 
     std::string open_file_path_;	//перевести в класс hevc_qimage_engine
+    std::string save_path_;
 
     Player *player_ = nullptr;
 

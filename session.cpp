@@ -63,7 +63,6 @@ void Session::reset()
 
 void Session::playButtonClicked()
 {
-    connect(player_, SIGNAL(qImagePlayer(int, QImage)), camera_, SLOT(slotChangeQImage(int, QImage)));
     if (thread_player_.joinable())
         thread_player_.detach();
     thread_player_ = std::thread(&Session::playThread, this);
@@ -147,18 +146,16 @@ void Session::changeFrameFromSlider(int target_frame)
 
 void Session::saveThread(QUrl url)
 {
-    std::string save_path = url.toLocalFile().toStdString();
-    video_output_		  = new VideoOutput(save_path);
-    video_output_->engine_player_->copyMass(sei_to_save_);
-
+    save_path_	 = url.toLocalFile().toStdString();
     thread_save_ = std::thread(&Session::saveVideo, this);
     thread_save_.detach();
 }
 
 void Session::saveVideo()
 {
+    video_output_ = new VideoOutput(save_path_, open_file_path_);
+    video_output_->engine_player_->copyMass(sei_to_save_);
     connect(video_output_, SIGNAL(savingProgress(int)), this, SLOT(savingProcess(int)));
-    video_output_->engine_player_->initialization(open_file_path_);
     video_output_->saveVideo();
 }
 
@@ -169,7 +166,7 @@ void Session::savingProcess(int pop)
 
 void Session::stopSaving()
 {
-    video_output_->saving = false;
+    video_output_->saving_ = false;
 }
 
 void Session::seiToShow(int ind, bool flag)
