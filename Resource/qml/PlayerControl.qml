@@ -3,50 +3,46 @@ import QtQuick.Layouts 1.3
 import QtQuick.Controls 2.5
 
 RowLayout {
-    property RoundButton playback_button: playback_button
-    property RoundButton prev_frame_button: prev_frame_button
-    property RoundButton next_frame_button: next_frame_button
+    property CustomButton playback_button: playback_button
+    property CustomButton prev_frame_button: prev_frame_button
+    property CustomButton next_frame_button: next_frame_button
     property Slider frame_slider: frame_slider
     property Label total_frames_label: total_frames_label
     property Label current_frame_label: current_frame_label
-
     property string play: qsTr("▶")
     property string pause: qsTr("||")
-
-    property bool playing: false //true когда петля работает
+    property bool playing: false
 
     Layout.leftMargin: 15
 
     Connections {
         target: session
 
-        onTotalFramesChanged: {
+        function onTotalFramesChanged(total_frames_count) {
             total_frames_label.changeLabelText(total_frames_count);
             frame_slider.changeToValue(total_frames_count);
         }
-        onCurrentFrameChanged: {
-            // if slider is not holding then change label and slider info
+
+        function onCurrentFrameChanged(current_frame_) {
+            // if slider is not holding - change label and slider info
             if (!frame_slider.pressed){
-                // change slider and label of current frame
                 current_frame_label.changeLabelText(current_frame_);
                 frame_slider.value = current_frame_;
             }
             if (current_frame_<=1)
                 prev_frame_button.enabled = false;
-            else
+            else if (player_control.playing == false)
                 prev_frame_button.enabled = true;
             if (current_frame_ >=frame_slider.to)
                 next_frame_button.enabled = false;
-            else
+            else if (player_control.playing == false)
                 next_frame_button.enabled = true;
-
         }
 
-
-        onVideoWasOver:{
+        function onVideoWasOver(){
             if (player_control.playing)
                 player_control.playback_button.clicked();
-		player_control.next_frame_button.enabled = false;
+            player_control.next_frame_button.enabled = false;
         }
     }
 
@@ -60,73 +56,48 @@ RowLayout {
         frame_slider.enabled = false;
     }
 
-    RoundButton {
+    CustomButton {
         id: prev_frame_button
         text: qsTr("<")
+
         enabled: false
-
-        palette.button: "#565656"
-        palette.shadow: "#2d2d2d"
-        palette.buttonText: "#d5cfcf"
-
-        onClicked: { 
-	player_control.next_frame_button.enabled = true;
-	session.prevFrameButtonClicked() }
-
+        Layout.fillHeight: true
         Layout.column: 1
         Layout.row: 0
-        Layout.fillHeight: true
-        radius: button_radius
-        Layout.alignment: Qt.AlignCenter
-        Layout.preferredWidth: 50
-        Layout.preferredHeight: 25
-        font.pointSize: 10
+        onClicked: session.prevFrameButtonClicked()
     }
 
-    RoundButton {
+    CustomButton {
         id: playback_button
         text: play
+
         enabled: false
-
-        palette.button: "#565656"
-        palette.shadow: "#2d2d2d"
-        palette.buttonText: "#d5cfcf"
-
+        Layout.fillHeight: true
         Layout.column: 2
         Layout.row: 0
-        Layout.fillHeight: true
-        radius: button_radius
-        Layout.alignment: Qt.AlignCenter
-        Layout.preferredWidth: 50
-        Layout.preferredHeight: 25
-        font.pointSize: 10
         onClicked: {
-            // pressed play button
+            // pressed "PLAY", video is playing
             if (!player_control.playing)
             {
-                // change player status of playing (is playing)
+                // change status of playing
                 player_control.playing = true
 
-                // Видео воспроизводится, а на кнопке отображается команда "PAUSE"
+                // button changes appearance to "PAUSE"
                 player_control.playback_button.text = player_control.pause
 
-                // Когда видео воспроизводится, то нельзя переключать фреймы
                 player_control.next_frame_button.enabled = false
                 player_control.prev_frame_button.enabled = false
 
-                // Запустить обработку кадров
                 session.playButtonClicked()
             }
-            // pressed pause button
+            // pressed "PAUSE"
             else
             {
-                // change player status of playing (is stopping)
                 player_control.playing = false
 
-                // Видео ставится на паузу, а на кнопке отображается команда "PLAY"
+                // button changes appearance to "PLAY"
                 player_control.playback_button.text = player_control.play
 
-                // Переключать фреймы можно только когда видео стоит на паузе
                 player_control.next_frame_button.enabled = true
                 player_control.prev_frame_button.enabled = true
 
@@ -135,166 +106,102 @@ RowLayout {
         }
     }
 
-    RoundButton {
-        id: next_frame_button
+    CustomButton {
+        id: next_frame_button        
+        text: qsTr(">")
 
-        palette.button: "#565656"
-        palette.shadow: "#2d2d2d"
-        palette.buttonText: "#d5cfcf"
-
-        text: ">"
         enabled: false
-
-        onClicked: { session.nextFrameButtonClicked(); }
-
+        Layout.fillHeight: true
         Layout.column: 3
         Layout.row: 0
-        Layout.fillHeight: true
-        radius: button_radius
-        Layout.alignment: Qt.AlignCenter
-        Layout.preferredWidth: 50
-        Layout.preferredHeight: 25
-        font.pointSize: 10
+        onClicked: session.nextFrameButtonClicked();
     }
 
-    ColumnLayout {
-        Layout.preferredHeight: 50
-        Layout.leftMargin: 5
-        RowLayout {
-            Layout.leftMargin: 15
-            //Layout.rightMargin: 15
-            Label {
-                id: current_frame_label
-                text: qsTr("Frame 0")
-                horizontalAlignment: Text.AlignHCenter
-                verticalAlignment: Text.AlignVCenter
-                transformOrigin: Item.Center
+    Label {
+        id: current_frame_label
+        text: qsTr("Frame 0")
 
-                color: "#d5cfcf"
-                property string current_frame: "Frame "
+        property string current_frame: "Frame "
+        color: text_color
+        font.pointSize: 10
+        Layout.preferredWidth: 110
+        Layout.preferredHeight: 25
 
-                function setDefault() {
-                    text = qsTr("Frame 0");
-                }
+        Layout.alignment: Qt.AlignCenter
+        horizontalAlignment: Text.AlignHCenter
+        verticalAlignment: Text.AlignVCenter
+        transformOrigin: Item.Center
 
-                function changeLabelText(frame_number) {
-                    text = qsTr("Frame " + frame_number);
-                }
-
-                Layout.column: 1
-                Layout.row: 1
-                Layout.fillHeight: true
-                Layout.fillWidth: true
-                Layout.alignment: Qt.AlignCenter
-                Layout.preferredWidth: 60
-                Layout.preferredHeight: 25
-                font.pointSize: 10
-            }
-
-            Label {
-                id: total_frames_label
-                text: qsTr("from total 0")
-                verticalAlignment: Text.AlignVCenter
-                color: "#d5cfcf"
-
-                //======== по умолчанию from total 0
-                function setDefault() {
-                    text = qsTr("from total 0");
-                }
-
-                function changeLabelText(frames_count) {
-                    text = qsTr("from total " + frames_count);
-                }
-                //==========
-
-                Layout.column: 2
-                Layout.row: 1
-                Layout.fillHeight: true
-                Layout.fillWidth: true
-                Layout.alignment: Qt.AlignCenter
-                Layout.preferredWidth: 60
-                Layout.preferredHeight: 25
-                font.pointSize: 10
-            }
+        function setDefault() {
+            text = qsTr("Frame 0");
         }
 
-        Slider {
-            id: frame_slider
-            enabled: false
-            font.weight: Font.Light
-            from: 0.0
-            to: 1.0
-            stepSize: 1
+        function changeLabelText(frame_number) {
+            text = qsTr("Frame " + frame_number);
+        }        
+    }
 
-            Layout.fillHeight: true
-            Layout.fillWidth: true
-            Layout.alignment: Qt.AlignCenter
 
-            Layout.preferredHeight: 25 //высота расположения слайдера
 
-            handle.implicitHeight: 25
-            handle.implicitWidth: 25
-            //background.height: 4 если включить, то начнет ломаться часть слайдера с пройденным участком
+    Slider {
+        id: frame_slider
+        enabled: false
+        font.weight: Font.Light
+        from: 0.0
+        to: 1.0
+        stepSize: 1
 
-            /*  Для кастомного слайдера
-            background: Rectangle {
-                x: frame_slider.leftPadding
-                y: frame_slider.topPadding + frame_slider.availableHeight / 2 - height / 2
-                // implicitWidth: 600
-                //width: frame_slider.availableWidth
-                height: 4 //высота полоски слайдера
-                radius: 2 //радиус скругления правой стороны
-                color: "#bdbebf" //цвет полоски слайдера
+        Layout.fillHeight: true
+        Layout.fillWidth: true
+        Layout.alignment: Qt.AlignCenter
 
-                Rectangle {
-                    // width: frame_slider.visualPosition * parent.implicitWidth
-                    height: parent.height
-                    color: "#21be2b" //цвет пройденного слайдера
-                    radius: 2 //радиус скругления левой стороны
-                }
-            }
+        Layout.preferredHeight: 25 //Height of progress bar
 
-            handle: Rectangle {
-                x: frame_slider.leftPadding + frame_slider.visualPosition * (frame_slider.availableWidth - width)
-                y: frame_slider.topPadding + frame_slider.availableHeight / 2 - height / 2
+        function setDefault() {
+            frame_slider.value = 0.0;
+        }
 
-                implicitWidth: 25
-                implicitHeight: 25 //размер кружка
-                radius: 15 //радиус скругления
-                color: frame_slider.pressed ? "#d8d8d8" : "#f6f6f6" // цвет при нажатии / цвет в обычном состоянии
-                border.color: "#bdbebf" //цвет контура кружка
-            }*/
+        function changeToValue(frame) {
+            frame_slider.from = 1;
+            frame_slider.to = frame;
+        }
 
-            function setDefault() {
-                frame_slider.value = 0.0;
-            }
+        //user hold and move slider
+        onMoved: {
+            current_frame_label.changeLabelText(frame_slider.value);
+        }
 
-            function changeToValue(frame) {
-                frame_slider.from = 1;
-                frame_slider.to = frame;
-            }
+        //user releases slider
+        onPressedChanged: {
+            if (!frame_slider.pressed)
+            {
+                if (frame_slider.value>=frame_slider.to)
+                    player_control.next_frame_button.enabled = false;
+                if (frame_slider.value<=frame_slider.from)
+                    player_control.prev_frame_button.enabled = false;
+                session.changeFrameFromSlider(frame_slider.value)
+            };
+        }
+    }
 
-            // when user change current frame
-            onMoved: {
-                current_frame_label.changeLabelText(frame_slider.value);
-            }
+    Label {
+        id: total_frames_label
+        text: qsTr("0")
 
-            onPressedChanged: {
-                if (!frame_slider.pressed)
-                    {
-                        if (frame_slider.value>=frame_slider.to)
-                            player_control.next_frame_button.enabled = false;
-                        else
-                            player_control.next_frame_button.enabled = true;
-                        if (frame_slider.value<=frame_slider.from)
-                            player_control.prev_frame_button.enabled = false;
-                        else
-                            player_control.prev_frame_button.enabled = true;
+        color: text_color
+        font.pointSize: 10
+        Layout.preferredWidth: 80
+        Layout.preferredHeight: 25
 
-                    //console.log("Frame from slider: "+frame_slider.value)
-                    session.changeFrameFromSlider(frame_slider.value)
-                };
-            }
+        Layout.alignment: Qt.AlignCenter
+        verticalAlignment: Text.AlignVCenter
+
+        function setDefault() {
+            text = qsTr("0");
+        }
+
+        function changeLabelText(frames_count) {
+            text = qsTr(""+frames_count);
         }
     }
 }

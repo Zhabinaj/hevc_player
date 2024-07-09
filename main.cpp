@@ -7,6 +7,25 @@
 #include <QtQml>
 #include <qicon.h>
 
+/*! @mainpage Hevc Player Documentation
+
+ @section intro_sec Introduction
+
+  <br> You can use Hevc Player to opens, plays and saves .hevc videofiles with or without SEI data.
+  <br>
+  <br> The main functionality is based on working with the ffmpeg library.
+  <br> GUI is QML-based.
+  <br>
+  <br> Release version for Linux tested on Ubuntu 20.04.6
+  <br> Release version for Windows tested on Windows 10 x64
+
+  @section install_sec Installation
+
+  <br> 1: For using app on linux download and run hevc_payer.AppImage
+  <br> 2: For using app on windows download hevc_player_win.zip and run hevc_payer.exe
+  <br> 3: For using source code download/clone hevc_player folder and change the path to kpp_libs in CMakeLists.txt
+ */
+
 int main(int argc, char *argv[])
 {
     QQuickWindow::setDefaultAlphaBuffer(true);
