@@ -22,7 +22,6 @@ Session::~Session()
 
 void Session::initThread(QUrl url)
 {
-    // convert file path from QUrl to std::string
     open_file_path_ = url.toLocalFile().toStdString();
     thread_init_	= std::thread(&Session::open, this);
     thread_init_.detach();
@@ -30,13 +29,9 @@ void Session::initThread(QUrl url)
 
 void Session::open()
 {
-    // int ret;
-    // ret = change to try-catch
-    // return ret;
-
     player_ = new Player(open_file_path_);
     player_->engine_player_->connect(player_->engine_player_, SIGNAL(signalQImageReady(int, QImage)), camera_, SLOT(slotChangeQImage(int, QImage)));
-    player_->engine_player_->copyMass(sei_options_s_);
+    player_->engine_player_->copyMass(sei_to_show_);
     player_->engine_player_->play();
 
     emit totalFramesChanged(player_->engine_player_->total_frames_);
@@ -65,10 +60,10 @@ void Session::playButtonClicked()
 {
     if (thread_player_.joinable())
         thread_player_.detach();
-    thread_player_ = std::thread(&Session::playThread, this);
+    thread_player_ = std::thread(&Session::play, this);
 }
 
-void Session::playThread()
+void Session::play()
 {
     playing_status_ = PLAYING_STATUS::PLAY;
 
@@ -89,7 +84,7 @@ void Session::playThread()
 
         emit currentFrameChanged(player_->player_current_frame_);
 
-        if (nextFrameClicked)
+        if (next_frame_clicked_)
             playing_status_ = PLAYING_STATUS::PAUSE;
     }
 }
@@ -105,9 +100,9 @@ void Session::pauseButtonClicked()
 
 void Session::nextFrameButtonClicked()
 {
-    nextFrameClicked = 1;
-    playThread();
-    nextFrameClicked = 0;
+    next_frame_clicked_ = 1;
+    play();
+    next_frame_clicked_ = 0;
 }
 
 void Session::prevFrameButtonClicked()
@@ -125,14 +120,16 @@ void Session::changeFrameFromSlider(int target_frame)
         was_playing = true;
     }
 
-    //=== костыль, иначе со слайдера не работает перемещение на 1й фрейм
+    /* When moving from frame 2 to frame 1 using prevFrameButtonClicked(), everything works correctly.
+     * When moving from frame 2 to frame 1 using slyder first frame not displayed correctly.
+     * Could not find the cause of the error, this is a workaround.
+     */
     if (target_frame == 1)
     {
         target_frame = 2;
         player_->setFrame(target_frame);
         prevFrameButtonClicked();
     }
-    //===
 
     else
     {
@@ -159,9 +156,9 @@ void Session::saveVideo()
     video_output_->saveVideo();
 }
 
-void Session::savingProcess(int pop)
+void Session::savingProcess(int percent)
 {
-    emit savingProcessChanged(pop);
+    emit savingProcessChanged(percent);
 }
 
 void Session::stopSaving()
@@ -171,10 +168,9 @@ void Session::stopSaving()
 
 void Session::seiToShow(int ind, bool flag)
 {
-    sei_options_s_[ind] = flag;
+    sei_to_show_[ind] = flag;
     if (player_ != nullptr)
-        player_->engine_player_->copyMass(sei_options_s_);
-    //записываем всё в массив
+        player_->engine_player_->copyMass(sei_to_show_);
 }
 
 void Session::seiToSave(int ind, bool flag)

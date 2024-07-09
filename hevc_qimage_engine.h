@@ -44,7 +44,7 @@ public:
     int initialization(std::string);
 
     /**
-     * @brief Outputs additional metadata in terminal afther initialization
+     * @brief Outputs additional metadata in terminal after initialization
      */
     void initializationPrintData();
 
